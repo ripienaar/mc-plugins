@@ -1,0 +1,56 @@
+#!/usr/bin/ruby
+
+# Client program for the mcollective urltest agent found at http://code.google.com/p/mcollective-plugins/wiki/AgentUrltest
+#
+# Released under the GPLv2
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Performs a test of a url and show stats from all agents"
+    parser.banner = "Usage: mc-urltest [options] url"
+}
+
+if ARGV.length > 0
+    url = ARGV.shift
+else
+    puts("Please specify a url to test")
+    exit 1
+end
+
+begin
+    options[:filter]["agent"] = "urltest"
+
+    client = MCollective::Client.new(options[:config])
+
+    report = []
+
+    stats = client.discovered_req({"url" => url}, "urltest", options) do |res|
+        STDERR.puts("Got result from #{res[:senderid]}")
+
+        res = res[:body]
+
+        report <<  "Tester Node: #{res['testerlocation']}"
+        report << "       Lookup Time: #{res['lookuptime']}"
+        report << "      Connect Time: #{res['connectime']}"
+        report << "     Pre-Xfer Time: #{res['prexfertime']}"
+        report << "   Start-Xfer Time: #{res['startxfer']}"
+        report << "        Total Time: #{res['totaltime']}"
+        report << "     Bytes Fetched: #{res['bytesfetched']}"
+        report << ""
+        report << ""
+    end
+
+    puts
+rescue Exception => e
+    raise e
+end
+
+puts report.join("\n")
+
+client.display_stats(stats, options)
+
+# vi:tabstop=4:expandtab:ai
+
