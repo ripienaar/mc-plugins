@@ -4,7 +4,7 @@ require 'ostruct'
 
 module MCollective
     module Agent
-        # A agent that performs a web get and report stats back to the client
+        # An agent that performs a web get and report stats back to the client
         #
         # See http://code.google.com/p/mcollective-plugins/wiki/AgentUrltest
         #
