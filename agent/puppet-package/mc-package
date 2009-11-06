@@ -1,0 +1,66 @@
+#!/usr/bin/ruby
+
+# Client program for the mcollective package agent found at http://code.google.com/p/mcollective-plugins/
+#
+# Released under the GPLv2
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({:timeout => 120}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Manage remote packages"
+    parser.banner = "Usage: mc-package [options] action package"
+}
+
+def summarize(stats, versions)
+    puts("\n---- package agent summary ----")
+    puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
+    print("        Versions: ")
+
+    versions.keys.sort.each do |s|
+        print("#{versions[s]} * #{s}")
+    end
+
+    printf("\n    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+end
+
+if ARGV.length == 2
+    action = ARGV.shift
+    package = ARGV.shift
+
+    unless action =~ /^(install|update|uninstall|purge|status)$/
+        puts("Action has to be install, update, uninstall, purge or status")
+        exit 1
+    end
+else
+    puts("Please specify a package and action")
+    exit 1
+end
+
+begin
+    client = MCollective::Client.new(options[:config])
+
+    # confine machines we want to access to ones with
+    # the right agent only
+    options[:filter]["agent"] = "package"
+
+    versions = {}
+
+    stats = client.discovered_req({"package" => package, "action" => action}, "package", options) do |resp|
+        next if resp == nil
+
+        status = resp[:body][:pkgstatus]
+        
+        version = "#{status[:version]}-#{status[:release]}"
+        versions.include?(version) ? versions[version] += 1 : versions[version] = 1
+
+        printf("%-40s version = %s-%s\n", resp[:senderid], status[:name], version)
+    end
+rescue Exception => e
+    raise e
+end
+
+summarize(stats, versions)
+
+# vi:tabstop=4:expandtab:ai
