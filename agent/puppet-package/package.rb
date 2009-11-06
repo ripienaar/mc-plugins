@@ -76,9 +76,15 @@ module MCollective
                 Accepted Messages
                 -----------------
 
-                install, update [package]  - install or update to latest a package
-                uninstall, purge [package] - uninstall or purge a package
-                status                     - returns just the status of a package
+                The request should be a hash of action and package:
+
+                {"action" => "update"
+                 "package" => "zsh"}
+
+                Possible actions are:
+                install, update  - install or update to latest a package
+                uninstall, purge - uninstall or purge a package
+                status           - returns just the status of a package
 
                 Purging for YUM means yum remove which will also remove without prompts
                 anything that is dependant on the given package, use with care
