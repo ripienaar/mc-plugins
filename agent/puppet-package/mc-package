@@ -13,6 +13,13 @@ options = oparser.parse{|parser, options|
     parser.banner = "Usage: mc-package [options] action package"
 }
 
+if options[:filter] == {}
+    print("Do you really want to operate on packages unfiltered? (y/n): ")
+    STDOUT.flush
+
+    exit unless STDIN.gets.chomp =~ /^y$/
+end
+
 def summarize(stats, versions)
     puts("\n---- package agent summary ----")
     puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
