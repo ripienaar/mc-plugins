@@ -24,10 +24,11 @@ begin
     options[:filter]["agent"] = "urltest"
 
     client = MCollective::Client.new(options[:config])
+    client.options = options
 
     report = []
 
-    stats = client.discovered_req({"url" => url}, "urltest", options) do |res|
+    stats = client.discovered_req({"url" => url}, "urltest") do |res|
         STDERR.puts("Got result from #{res[:senderid]}")
 
         res = res[:body]
@@ -50,7 +51,7 @@ end
 
 puts report.join("\n")
 
-client.display_stats(stats, options)
+client.display_stats(stats)
 
 # vi:tabstop=4:expandtab:ai
 
