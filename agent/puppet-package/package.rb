@@ -12,7 +12,7 @@ module MCollective
 
             def initialize
                 @timeout = 120
-                @log = MCollective::Log.instance
+                @log = Log.instance
 
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
