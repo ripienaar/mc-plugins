@@ -26,7 +26,7 @@ def summarize(stats, versions)
     print("        Versions: ")
 
     versions.keys.sort.each do |s|
-        print("#{versions[s]} * #{s}")
+        print("#{versions[s]} * #{s} ")
     end
 
     printf("\n    Elapsed Time: %.2f s\n\n", stats[:blocktime])
