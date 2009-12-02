@@ -29,7 +29,7 @@ begin
     report = []
 
     stats = client.discovered_req({"url" => url}, "urltest") do |res|
-        STDERR.puts("Got result from #{res[:senderid]}")
+        print(".")
 
         res = res[:body]
 
@@ -44,7 +44,7 @@ begin
         report << ""
     end
 
-    puts
+    puts; puts
 rescue Exception => e
     raise e
 end
