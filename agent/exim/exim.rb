@@ -1,5 +1,10 @@
 module MCollective
     module Agent
+        # TODO: 
+        #  - should check that matching mails exist before trying to act on them
+        #  - should validate msid, senders, recpients etc
+        #  - paths should be configurable
+        #  - sometimes leaves zombies around
         class Exim
             attr_reader :timeout, :meta
             def initialize
@@ -247,7 +252,13 @@ module MCollective
     
             # Deletes all mail with a sender of <>
             def rmbounces
-                runcmd("#{@exiqgrep} -i -f '<>'| #{@xargs} #{@exim} -Mrm")
+                out = %x{#{@exiqgrep} -i -f <> 2>&1}.split("\n").join(' ')
+
+                if out =~ /-/
+                    runcmd("#{@exiqgrep} -i -f '<>'| #{@xargs} #{@exim} -Mrm")
+                else
+                    "No bounce mail found on this server"
+                end
             end
     
             # Deletes all frozen messages

@@ -62,7 +62,7 @@ def printmailq(mailq)
     mailq.each do |m|
         m[:frozen] ? frozen = "*** frozen ***" : frozen = ""
     
-        printf("%-4s%5s %s %s %s\n", m[:age], m[:size], m[:msgid], m[:sender], frozen)
+        printf("%3s%6s %s %s %s\n", m[:age], m[:size], m[:msgid], m[:sender], frozen)
     
         m[:recipients].each do |r|
             puts("          #{r}")
