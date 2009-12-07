@@ -3,7 +3,7 @@ module MCollective
         class Exim
             attr_reader :timeout, :meta
             def initialize
-                @timeout = 1
+                @timeout = 5
                 @meta = {:license => "GPLv2",
                          :author => "R.I.Pienaar <rip@devco.net>",
                          :url => "http://code.google.com/p/mcollective-plugins/"}
@@ -18,8 +18,9 @@ module MCollective
 
             def handlemsg(msg, connection)
                 req = msg[:body]
-                options = req[:options]
                 command = req[:command]
+
+        Log.instance.info("Handling command '#{command}' #{req[:recipient]}")
 
                 begin
                     case command
@@ -30,34 +31,34 @@ module MCollective
                             summary
 
                         when "retrymsg"
-                            retrymsg(options[0])
+                            retrymsg(req[:msgid])
 
                         when "addrecipient"
-                            addrecipient(options[0], options[1])
+                            addrecipient(req[:msgid], req[:recipient])
 
                         when "setsender"
-                            setsender(options[0], options[1])
+                            setsender(req[:msgid], req[:sender])
 
                         when "markmsgdelivered"
-                            markmsgdelivered(options[0])
+                            markmsgdelivered(req[:msgid])
 
                         when "markrecipdelivered"
-                            markrecipdelivered(options[0], options[1])
+                            markrecipdelivered(req[:msgid], req[:recipient])
  
                         when "freeze"
-                            freeze(options[0])
+                            freeze(req[:msgid])
  
                         when "thaw"
-                            thaw(options[0])
+                            thaw(req[:msgid])
  
                         when "giveup"
-                            giveup(options[0])
+                            giveup(req[:msgid])
  
                         when "rm"
-                            rm(options[0])
+                            rm(req[:msgid])
 
                         when "exiwhat_text"
-                            exiwhat
+                            exiwhat_text
 
                         when "rmbounces"
                             rmbounces
@@ -69,10 +70,10 @@ module MCollective
                             runq
 
                         when "delivermatching"
-                            delivermatching(options[0])
+                            delivermatching(req[:queuematch])
 
                         when "testaddress"
-                            testaddress(options[0])
+                            testaddress(req[:recipient])
                     end
                 rescue Exception => e
                     e.to_s
@@ -251,7 +252,13 @@ module MCollective
     
             # Deletes all frozen messages
             def rmfrozen
-                runcmd("#{@exiqgrep} -i -f '<>'| #{@xargs} #{@exim} -Mrm")
+                out = %x{#{@exiqgrep} -i -z 2>&1}.split("\n").join(' ')
+
+                if out =~ /-/
+                    runcmd("#{@xargs} #{@exim} -Mrm #{out}") if out
+                else
+                    "No frozen mail found on this server"
+                end
             end
     
             # Does a normal mail queue run in the background
