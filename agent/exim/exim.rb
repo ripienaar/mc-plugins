@@ -36,8 +36,8 @@ module MCollective
                     end
 
                     unless req[:msgid] == ""
-                        raise("Invalid msgid") unless validid?(msgid)
-                        raise("No such message") unless hasmsg?(msgid)
+                        raise("Invalid msgid") unless validid?(req[:msgid])
+                        raise("No such message") unless hasmsg?(req[:msgid])
                     end
 
                     case command
