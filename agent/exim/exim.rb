@@ -296,7 +296,7 @@ module MCollective
             end
 
             # Validates a messageid
-            def validid?(id)
+            def validid?(msgid)
                 msgid =~ /^\w+-\w+-\w+$/
             end
 
