@@ -1,0 +1,38 @@
+#!/usr/bin/ruby
+
+require 'mcollective'
+
+oparser = MCollective::Optionparser.new({}, "filter")
+
+options = oparser.parse{|parser, options|
+    parser.define_head "Get remote exim mail queues"
+}
+
+options[:filter]["agent"] = "exim"
+
+begin
+    client = MCollective::Client.new(options[:config])
+    client.options = options
+
+    mailq = []
+
+    stats = client.discovered_req({:command => "mailq", :options => ""}, "exim") do |resp|
+        mailq.concat [resp[:body]].flatten
+    end
+rescue Exception => e
+    raise e
+end
+
+mailq.each do |m|
+    m[:frozen] ? frozen = "*** frozen ***" : frozen = ""
+
+    printf("%-4s %-5s %s %s %s\n", m[:age], m[:size], m[:msgid], m[:sender], frozen)
+
+    m[:recipients].each do |r|
+        puts("           #{r}")
+    end
+
+    puts
+end
+
+# vi:tabstop=4:expandtab:ai
