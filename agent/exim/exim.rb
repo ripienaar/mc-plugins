@@ -9,7 +9,7 @@ module MCollective
                          :url => "http://code.google.com/p/mcollective-plugins/"}
 
                 @exim = "/usr/sbin/exim"
-                @mailq = "/usr/sbin/mailq"
+                @mailq = "/usr/bin/mailq"
                 @exiqsumm = "/usr/sbin/exiqsumm"
                 @exiwhat = "/usr/sbin/exiwhat"
                 @exiqgrep = "/usr/sbin/exiqgrep"
@@ -20,8 +20,6 @@ module MCollective
                 req = msg[:body]
                 options = req[:options]
                 command = req[:command]
-
-                require 'mcollective/util/exim'
 
                 begin
                     case command
@@ -134,7 +132,7 @@ module MCollective
             # * msgid - the exim message id
             # * sender - the sender address
             def mailq
-                mailq = runcomd(@mailq)
+                mailq = runcmd(@mailq)
     
                 messages = Array.new
                 msg = nil
