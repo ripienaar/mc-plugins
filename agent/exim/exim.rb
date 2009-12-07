@@ -1,8 +1,6 @@
 module MCollective
     module Agent
         # TODO: 
-        #  - should check that matching mails exist before trying to act on them
-        #  - should validate msid, senders, recpients etc
         #  - paths should be configurable
         #  - sometimes leaves zombies around
         class Exim
@@ -19,15 +17,29 @@ module MCollective
                 @exiwhat = "/usr/sbin/exiwhat"
                 @exiqgrep = "/usr/sbin/exiqgrep"
                 @xargs = "/usr/bin/xargs"
+                @spool = "/var/spool/exim/input"
             end
 
             def handlemsg(msg, connection)
                 req = msg[:body]
                 command = req[:command]
 
-        Log.instance.info("Handling command '#{command}' #{req[:recipient]}")
-
                 begin
+                    # Validate everything we get passed, saves having to do it later
+                    # every time we use it
+                    unless req[:recipient] == ""
+                        raise("Invalid email address") unless validemail?(req[:recipient])
+                    end
+
+                    unless req[:sender] == ""
+                        raise("Invalid email address") unless validemail?(req[:sender])
+                    end
+
+                    unless req[:msgid] == ""
+                        raise("Invalid msgid") unless validid?(msgid)
+                        raise("No such message") unless hasmsg?(msgid)
+                    end
+
                     case command
                         when "mailq"
                             mailq
@@ -254,22 +266,18 @@ module MCollective
             def rmbounces
                 out = %x{#{@exiqgrep} -i -f <> 2>&1}.split("\n").join(' ')
 
-                if out =~ /-/
-                    runcmd("#{@exiqgrep} -i -f '<>'| #{@xargs} #{@exim} -Mrm")
-                else
-                    "No bounce mail found on this server"
-                end
+                raise("No bounce mail found on this server") unless out =~ /-/
+
+                runcmd("#{@exiqgrep} -i -f '<>'| #{@xargs} #{@exim} -Mrm")
             end
     
             # Deletes all frozen messages
             def rmfrozen
                 out = %x{#{@exiqgrep} -i -z 2>&1}.split("\n").join(' ')
 
-                if out =~ /-/
-                    runcmd("#{@xargs} #{@exim} -Mrm #{out}") if out
-                else
-                    "No frozen mail found on this server"
-                end
+                raise("No frozen mail found on this server") unless out =~ /-/
+
+                runcmd("#{@xargs} #{@exim} -Mrm #{out}") if out
             end
     
             # Does a normal mail queue run in the background
@@ -285,6 +293,21 @@ module MCollective
             # Does a routing test
             def testaddress(address)
                 runcmd("#{@exim} -bt '#{address}'")
+            end
+
+            # Validates a messageid
+            def validid?(id)
+                msgid =~ /^\w+-\w+-\w+$/
+            end
+
+            # Simple/naive email validation
+            def validemail?(email)
+                email =~ /^\S+\@\S+$/
+            end
+
+            # Checks if there's a data or headers file for a given mail id
+            def hasmsg?(id)
+                File.exist?("#{@spool}/#{id}-D") || File.exist?("#{@spool}/#{id}-H") ? true : false
             end
         end
     end

@@ -2,7 +2,7 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({:recipient => "", :sender => "", :msgid => "", :queuematch => ""}, "filter")
+oparser = MCollective::Optionparser.new({:recipient => "", :sender => "", :msgid => "", :queuematch => "", :timeout => 6}, "filter")
 
 options = oparser.parse{|parser, options|
     parser.define_head "General management tools for remote exim instances"
