@@ -264,7 +264,7 @@ module MCollective
     
             # Deletes all mail with a sender of <>
             def rmbounces
-                out = %x{#{@exiqgrep} -i -f <> 2>&1}.split("\n").join(' ')
+                out = %x{#{@exiqgrep} -i -f '<>' 2>&1}.split("\n").join(' ')
 
                 raise("No bounce mail found on this server") unless out =~ /-/
 
