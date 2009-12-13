@@ -194,12 +194,25 @@ module MCollective
 
             # Validates a messageid
             def validid?(msgid)
-                msgid =~ /^\w+-\w+-\w+$/
+                return false if msgid =~ /\`/
+                return false unless msgid =~ /^\w+-\w+-\w+$/
+
+                true
             end
 
             # Simple/naive email validation
             def validemail?(email)
-                email =~ /^\S+\@\S+$/
+                return false if email =~ /\`/
+                return false unless email =~ /^\S+\@\S+$/
+
+                true
+            end
+
+            # Simple checks on the matching stuff
+            def validmatch?(match)
+                return false if match =~ /\`/
+
+                true
             end
 
             # Checks if there's a data or headers file for a given mail id

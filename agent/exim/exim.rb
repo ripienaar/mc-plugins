@@ -45,6 +45,10 @@ module MCollective
                         raise("No such message") unless hasmsg?(req[:msgid])
                     end
 
+                    unless req[:queuematch] == ""
+                        raise("Invalid match") unless validmatch?(req[:queuematch])
+                    end
+
                     case command
                         when "mailq"
                             mailq
