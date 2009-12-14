@@ -1,8 +1,17 @@
+class CancelPressed < RuntimeError; end
+class InvalidAddress < RuntimeError; end
+
 module MCollective
     module Util
         class EximClient
             attr_reader :discovered_clients
 
+            # Initializes things, you need to give it a fully configured up copy of
+            # MCollective::Client, specifically you should have set options already.
+            #
+            # If you set true as the 2nd param it'll load up rdialog for you so you
+            # can use the helper functions.  If you dont and try to use rdialog
+            # related functions you'll get weird exceptions.
             def initialize(client, with_rdialog=false)
                 @discovered_clients = nil
                 @client = client
@@ -25,7 +34,7 @@ module MCollective
 
             # Show the string in a dialog box with a specified title
             def textbox(msg, title)
-                    File.open("/tmp/tmp.#{$$}", 'w') {|f| f.write("\n" + msg) }
+                    File.open("/tmp/tmp.#{$$}", 'w') {|f| f.write("\n" + msg.to_s) }
             
                     title.sub!(/"/, "\\\"")
             
@@ -70,7 +79,7 @@ module MCollective
                 @discovered_clients = nil
             end
 
-            # helper to print out responses from hosts in a consistant way
+            # helper to return the text of responses from hosts in a consistant way
             def printhostresp(resp)
                 if resp[:body].is_a?(String)
                     text = "#{resp[:senderid]}:"
@@ -85,7 +94,7 @@ module MCollective
                 text
             end
 
-            # helper to print the mailq in a way similar to the exim mailq command
+            # helper that returns the text of the mailq in a way similar to the exim mailq command
             def printmailq(mailq)
                 text = ""
                 mailq.each do |m|
@@ -131,6 +140,17 @@ module MCollective
                 end
 
                 mailq
+            end
+
+            # Takes the mailq output and pass it through exiqsum, exiqsum must be locally avail
+            def summarytext
+                File.open("/tmp/tmp.#{$$}", 'w') {|f| f.write(printmailq(mailq)) }
+
+                out = %x[/bin/cat /tmp/tmp.#{$$} | /usr/sbin/exiqsumm]
+
+                File.unlink("/tmp/tmp.#{$$}")
+
+                out
             end
 
             # Retries delivery for a specified message 
@@ -186,6 +206,15 @@ module MCollective
             # Does a routing test
             def testaddress(address)
                 req("testaddress", address, "", "", "")
+            end
+
+            # Simple/naive email validation
+            def validemail?(email)
+                return true if email == ""
+                return false if email =~ /\`/
+                return false unless email =~ /^\S+\@\S+$/
+
+                true
             end
 
             # Catchall for the rest, they're mostly the same but this gives us the ability
