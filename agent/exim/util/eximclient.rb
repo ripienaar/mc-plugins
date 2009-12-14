@@ -3,10 +3,56 @@ module MCollective
         class EximClient
             attr_reader :discovered_clients
 
-            def initialize(client)
+            def initialize(client, with_rdialog=false)
                 @discovered_clients = nil
                 @client = client
                 @options = client.options
+
+                if with_rdialog
+                    require 'rdialog'
+
+                    @dialog = RDialog.new
+                    @dialog.backtitle = "Exim Collective"
+                    @dialog.itemhelp = true
+                end
+            end
+
+            # Displays some text while you do something in the background
+            def infobox(msg, title, height = 5, width = 40)
+                    @dialog.title = "\"#{title}\""
+                    @dialog.infobox("\n" + msg, height, width)
+            end
+
+            # Show the string in a dialog box with a specified title
+            def textbox(msg, title)
+                    File.open("/tmp/tmp.#{$$}", 'w') {|f| f.write("\n" + msg) }
+            
+                    title.sub!(/"/, "\\\"")
+            
+                    @dialog.title = "\"#{title}\""
+                    @dialog.textbox("/tmp/tmp.#{$$}")
+                    File.unlink("/tmp/tmp.#{$$}")
+            end
+            
+            # Ask the user for something, return the entered text
+            def ask(what, title)
+                    @dialog.title = "\"#{title}\""
+            
+                    res = @dialog.inputbox("'#{what}'")
+            
+                    raise CancelPressed.new unless res
+            
+                    res
+            end
+            
+            # Shows a list of options and lets the user choose one
+            def choose(choices, title)
+                    @dialog.title = "\"#{title}\""
+                    res = @dialog.menu(title, choices)
+            
+                    raise CancelPressed.new unless res
+            
+                    res
             end
 
             # does a discovery and store the discovered clients so we do not need to do 
@@ -27,31 +73,34 @@ module MCollective
             # helper to print out responses from hosts in a consistant way
             def printhostresp(resp)
                 if resp[:body].is_a?(String)
-                    puts("#{resp[:senderid]}:")
-                    puts "     " + resp[:body].split("\n").join("\n     ")
-                    puts
+                    text = "#{resp[:senderid]}:"
+                    text += "     " + resp[:body].split("\n").join("\n     ") + "\n\n"
                 elsif resp[:body].is_a?(Array)
-                    puts("#{resp[:senderid]}:")
-                    puts "     " + resp[:body].join("\n     ")
-                    puts
+                    text = "#{resp[:senderid]}:"
+                    text += "     " + resp[:body].join("\n     ") + "\n\n"
                 else
-                    puts("#{resp[:senderid]} responded with a #{resp[:body].class}")
+                    tex += "#{resp[:senderid]} responded with a #{resp[:body].class}"
                 end
+
+                text
             end
 
             # helper to print the mailq in a way similar to the exim mailq command
             def printmailq(mailq)
+                text = ""
                 mailq.each do |m|
                     m[:frozen] ? frozen = "*** frozen ***" : frozen = ""
                 
-                    printf("%3s%6s %s %s %s\n", m[:age], m[:size], m[:msgid], m[:sender], frozen)
+                    text += "%3s%6s %s %s %s\n" % [ m[:age], m[:size], m[:msgid], m[:sender], frozen ]
                 
                     m[:recipients].each do |r|
-                        puts("          #{r}")
+                        text += "          #{r}\n"
                     end
                 
-                    puts
+                    text += "\n"
                 end
+
+                text
             end
 
             # Creates a request that confirms with what the remote end expects.  Sends the 
