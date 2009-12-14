@@ -33,11 +33,11 @@ module MCollective
                     # Validate everything we get passed, saves having to do it later
                     # every time we use it
                     unless req[:recipient] == ""
-                        raise("Invalid email address") unless validemail?(req[:recipient])
+                        raise("Invalid recipient address") unless validemail?(req[:recipient])
                     end
 
                     unless req[:sender] == ""
-                        raise("Invalid email address") unless validemail?(req[:sender])
+                        raise("Invalid sender address") unless validemail?(req[:sender])
                     end
 
                     unless req[:msgid] == ""
@@ -48,6 +48,8 @@ module MCollective
                     unless req[:queuematch] == ""
                         raise("Invalid match") unless validmatch?(req[:queuematch])
                     end
+
+                    Log.instance.debug("Doing command #{command}")
 
                     case command
                         when "mailq"

@@ -174,7 +174,7 @@ module MCollective
 
                 raise("No frozen mail found on this server") unless out =~ /-/
 
-                runcmd("#{@xargs} #{@exim} -Mrm #{out}") if out
+                runcmd("#{@exim} -Mrm #{out}") if out
             end
     
             # Does a normal mail queue run in the background
@@ -194,6 +194,7 @@ module MCollective
 
             # Validates a messageid
             def validid?(msgid)
+                return true if msgid == ""
                 return false if msgid =~ /\`/
                 return false unless msgid =~ /^\w+-\w+-\w+$/
 
@@ -202,6 +203,7 @@ module MCollective
 
             # Simple/naive email validation
             def validemail?(email)
+                return true if email == ""
                 return false if email =~ /\`/
                 return false unless email =~ /^\S+\@\S+$/
 
@@ -210,6 +212,7 @@ module MCollective
 
             # Simple checks on the matching stuff
             def validmatch?(match)
+                return true if match == ""
                 return false if match =~ /\`/
 
                 true
