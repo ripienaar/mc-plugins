@@ -57,12 +57,12 @@ module MCollective
             # Creates a request that confirms with what the remote end expects.  Sends the 
             # request off to the collective and either runs your block with the response 
             # or returns it.
-            def req(command)
+            def req(command, recipient="", sender="", msgid="", queuematch="")
                 req  = {:command => command,
-                        :recipient => @options[:recipient],
-                        :sender => @options[:sender],
-                        :msgid => @options[:msgid],
-                        :queuematch => @options[:queuematch]}
+                        :recipient => recipient,
+                        :sender => sender,
+                        :msgid => msgid,
+                        :queuematch => queuematch}
 
                 @client.req(req, "exim", @options, discover.size) do |resp|
                     if block_given?
@@ -84,10 +84,64 @@ module MCollective
                 mailq
             end
 
+            # Retries delivery for a specified message 
+            def retrymsg(msgid)
+                req("retrymsg", "", "", msgid, "")
+            end
+
+            # Adds a recipient to a given message
+            def addrecipient(msgid, recipient)
+                req("addrecipient", recipient, "", msgid, "")
+            end
+
+            # Sets the sender for a messageid
+            def setsender(msgid, sender)
+                req("setsender", "", sender, msgid, "")
+            end
+
+            # Mark an entire message as delivered
+            def markmsgdelivered(msgid)
+                req("markmsgdelivered", "", "", msgid, "")
+            end
+
+            # Marks a single recipient on a message as delivered
+            def markrecipdelivered(msgid, recipient)
+                req("markrecipdelivered", recipient, "", msgid, "")
+            end
+
+            # Freeze a message
+            def freeze(msgid)
+                req("freeze", "", "", msgid, "")
+            end
+
+            # Unfreeze a message
+            def thaw(msgid)
+                req("thaw", "", "", msgid, "")
+            end
+
+            # Gives up on a message with NDR
+            def giveup(msgid)
+                req("giveup", "", "", msgid, "")
+            end
+
+            # Removes a specified message from the queue
+            def rm(msgid)
+                req("rm", "", "", msgid, "")
+            end
+
+            # Delivers all messages matching a patten
+            def delivermatching(pattern)
+                req("delivermatching", "", "", "", pattern)
+            end
+
+            # Does a routing test
+            def testaddress(address)
+                req("testaddress", address, "", "", "")
+            end
+
             # Catchall for the rest, they're mostly the same but this gives us the ability
             # to only improve when needed
             def method_missing(method_name, *args)
-                Log.instance.debug("method_missing doing request for #{method_name}")
                 req(method_name.to_s)
             end
         end
