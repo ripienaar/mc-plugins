@@ -80,15 +80,18 @@ module MCollective
             end
 
             # helper to return the text of responses from hosts in a consistant way
-            def printhostresp(resp)
-                if resp[:body].is_a?(String)
-                    text = "#{resp[:senderid]}:"
-                    text += "     " + resp[:body].split("\n").join("\n     ") + "\n\n"
-                elsif resp[:body].is_a?(Array)
-                    text = "#{resp[:senderid]}:"
-                    text += "     " + resp[:body].join("\n     ") + "\n\n"
-                else
-                    tex += "#{resp[:senderid]} responded with a #{resp[:body].class}"
+            def printhostresp(response)
+                text = ""
+                response.each do |resp|
+                    if resp[:body].is_a?(String)
+                        text += "#{resp[:senderid]}:"
+                        text += "     " + resp[:body].split("\n").join("\n     ") + "\n\n"
+                    elsif resp[:body].is_a?(Array)
+                        text += "#{resp[:senderid]}:"
+                        text += "     " + resp[:body].join("\n     ") + "\n\n"
+                    else
+                        text += "#{resp[:senderid]} responded with a #{resp[:body].class}"
+                    end
                 end
 
                 text
@@ -122,13 +125,16 @@ module MCollective
                         :msgid => msgid,
                         :queuematch => queuematch}
 
+                result = []
                 @client.req(req, "exim", @options, discover.size) do |resp|
                     if block_given?
                         yield(resp)
                     else
-                        return resp
+                        result << resp
                     end
                 end
+
+                return [result].flatten unless block_given?
             end
 
             # Retrieves the mailq and returns the array of data
