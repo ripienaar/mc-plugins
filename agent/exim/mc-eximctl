@@ -26,7 +26,9 @@ oparser = MCollective::Optionparser.new({:verbose => true}, "filter")
 
 options = oparser.parse{|parser, options| }
 
-client = MCollective::Client.new("etc/client.cfg")
+options[:filter]["agent"] = "exim"
+
+client = MCollective::Client.new(options[:config])
 client.options = options
 
 MCollective::Util.loadclass("MCollective::Util::EximClient")
