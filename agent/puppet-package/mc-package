@@ -61,7 +61,14 @@ begin
 
         status = resp[:body][:pkgstatus]
         
-        version = "#{status[:version]}-#{status[:release]}"
+        require 'pp';pp status
+
+        if status.include?(:version)
+            version = "#{status[:version]}-#{status[:release]}"
+        else
+            version = status[:ensure]
+        end
+
         versions.include?(version) ? versions[version] += 1 : versions[version] = 1
 
         printf("%-40s version = %s-%s\n", resp[:senderid], status[:name], version)
