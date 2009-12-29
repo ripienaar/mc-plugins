@@ -61,10 +61,14 @@ begin
 
         status = resp[:body][:pkgstatus]
         
-        if status.include?(:version)
-            version = "#{status[:version]}-#{status[:release]}"
-        else
-            version = status[:ensure]
+        begin
+            if status.include?(:version)
+                version = "#{status[:version]}-#{status[:release]}"
+            elsif status.include?(:ensure)
+                version = status[:ensure]
+            end
+        rescue 
+            version = "unknown"
         end
 
         versions.include?(version) ? versions[version] += 1 : versions[version] = 1
