@@ -61,8 +61,6 @@ begin
 
         status = resp[:body][:pkgstatus]
         
-        require 'pp';pp status
-
         if status.include?(:version)
             version = "#{status[:version]}-#{status[:release]}"
         else
