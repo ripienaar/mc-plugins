@@ -65,7 +65,7 @@ begin
             if status.include?(:version)
                 version = "#{status[:version]}-#{status[:release]}"
             elsif status.include?(:ensure)
-                version = status[:ensure]
+                version = status[:ensure].to_s
             end
         rescue 
             version = "unknown"
