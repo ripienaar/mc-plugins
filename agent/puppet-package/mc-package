@@ -13,7 +13,7 @@ options = oparser.parse{|parser, options|
     parser.banner = "Usage: mc-package [options] action package"
 }
 
-if options[:filter] == {}
+if MCollective::Util.empty_filter?(options[:filter])
     print("Do you really want to operate on packages unfiltered? (y/n): ")
     STDOUT.flush
 
