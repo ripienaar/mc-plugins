@@ -25,9 +25,12 @@ def summarize(stats, versions)
     puts("           Nodes: #{stats[:discovered]} / #{stats[:responses]}")
     print("        Versions: ")
 
+    t = []
     versions.keys.sort.each do |s|
-        print("#{versions[s]} * #{s} ")
+        t << "#{versions[s]} * #{s}"
     end
+
+    puts t.join(", ")
 
     printf("\n    Elapsed Time: %.2f s\n\n", stats[:blocktime])
 end
