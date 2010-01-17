@@ -6,19 +6,23 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({:timeout => 120}, "filter")
+include MCollective::RPC
 
-options = oparser.parse{|parser, options|
+options = rpcoptions do |parser, options|
+    options[:timeout] = 180
+
     parser.define_head "Manage remote packages"
-    parser.banner = "Usage: mc-package [options] action package"
-}
+    parser.banner = "Usage: mc-service [options] action pacakge"
+end
 
 if MCollective::Util.empty_filter?(options[:filter])
-    print("Do you really want to operate on packages unfiltered? (y/n): ")
+    print("Do you really want to operate on services unfiltered? (y/n): ")
     STDOUT.flush
 
     exit unless STDIN.gets.chomp =~ /^y$/
 end
+
+pkg = rpcclient("package", {:options => options})
 
 def summarize(stats, versions)
     puts("\n---- package agent summary ----")
@@ -27,7 +31,7 @@ def summarize(stats, versions)
 
     puts versions.keys.sort.map {|s| "#{versions[s]} * #{s}" }.join(", ")
 
-    printf("\n    Elapsed Time: %.2f s\n\n", stats[:blocktime])
+    printf("    Elapsed Time: %.2f s\n\n", stats[:blocktime])
 end
 
 if ARGV.length == 2
@@ -43,40 +47,26 @@ else
     exit 1
 end
 
-begin
-    client = MCollective::Client.new(options[:config])
+versions = {}
 
-    # confine machines we want to access to ones with
-    # the right agent only
-    options[:filter]["agent"] = "package"
-
-    client.options = options
-
-    versions = {}
-
-    stats = client.discovered_req({"package" => package, "action" => action}, "package") do |resp|
-        next if resp == nil
-
-        status = resp[:body][:pkgstatus]
-        
-        begin
-            if status.include?(:version)
-                version = "#{status[:version]}-#{status[:release]}"
-            elsif status.include?(:ensure)
-                version = status[:ensure].to_s
-            end
-        rescue 
-            version = "unknown"
+pkg.send(action, {:package => package}).each do |resp|
+    status = resp[:data][:properties]
+    
+    if resp[:statuscode] == 0
+        if status.include?(:version)
+            version = "#{status[:version]}-#{status[:release]}"
+        elsif status.include?(:ensure)
+            version = status[:ensure].to_s
         end
-
+    
         versions.include?(version) ? versions[version] += 1 : versions[version] = 1
-
-        printf("%-40s version = %s-%s\n", resp[:senderid], status[:name], version)
+    
+        printf("%-40s version = %s-%s\n", resp[:sender], status[:name], version)
+    else
+        printf("%-40s error = %s\n", resp[:sender], resp[:statusmsg])
     end
-rescue Exception => e
-    raise e
 end
 
-summarize(stats, versions)
+summarize(pkg.stats, versions)
 
 # vi:tabstop=4:expandtab:ai

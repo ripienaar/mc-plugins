@@ -1,35 +1,47 @@
 module MCollective
     module Agent
-        require 'puppet'
-
         # An agent that uses Reductive Labs Puppet to manage packages
         #
         # See http://code.google.com/p/mcollective-plugins/
         #
         # Released under the terms of the GPL, same as Puppet
-        class Package
+        class Package<RPC::Agent
             attr_reader :timeout, :meta
 
-            def initialize
-                @timeout = 120
-                @log = Log.instance
+            def startup_hook
+                meta[:license] = "GPLv2"
+                meta[:author] = "R.I.Pienaar"
+                meta[:version] = "1.1"
+                meta[:url] = "http://mcollective-plugins.googlecode.com/"
 
-                @meta = {:license => "GPLv2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
+                @timeout = 180
             end
 
-            def handlemsg(msg, connection)
-                req = msg[:body]
-                package = req["package"]
-                action = req["action"]
+            def install_action
+                do_pkg_action(request[:package], :install)
+            end
 
-                @log.info("Doing package #{action} for package #{package}")
+            def update_action
+                do_pkg_action(request[:package], :update)
+            end
 
-                output = "no output"
-                status = "unknown"
+            def uninstall_action
+                do_pkg_action(request[:package], :uninstall)
+            end
 
+            def purge_action
+                do_pkg_action(request[:package], :purge)
+            end
+
+            def status_action
+                do_pkg_action(request[:package], :status)
+            end
+
+            private
+            def do_pkg_action(package, action)
                 begin
+                    require 'puppet'
+
                     if Puppet.version =~ /0.24/
                         Puppet::Type.type(:package).clear
                         pkg = Puppet::Type.type(:package).create(:name => package).provider
@@ -37,67 +49,54 @@ module MCollective
                         pkg = Puppet::Type.type(:package).new(:name => package).provider
                     end
 
+                    reply[:output] = ""
+                    reply[:properties] = "unknown"
+
                     case action
-                        when /^install$/
-                            if pkg.properties[:ensure] == :absent
-                                pkg.send action
-                            end
+                        when :install
+                            reply[:output] = pkg.install
 
-                        when /^update$/
-                            if pkg.properties[:ensure] != :absent
-                                pkg.send action
-                            end
+                        when :update
+                            reply[:output] = pkg.update
 
-                        when /^(uninstall|purge)$/
-                            if pkg.properties[:ensure] != :absent
-                                pkg.send action
-                            end
+                        when :uninstall
+                            reply[:output] = pkg.uninstall
 
-                        when "status"
-                            # don't do anything, just return the status later
-                             
+                        when :status
+                            pkg.flush
+                            reply[:output] = pkg.properties
+
+                        when :purge
+                            reply[:output] = pkg.purge
+
                         else
-                            raise("Unsupported action: #{action}")
+                            reply.fail "Unknown action #{action}"
                     end
 
                     pkg.flush
-
-                    status = pkg.properties
+                    reply[:properties] = pkg.properties
                 rescue Exception => e
-                    output = "Failed: #{e}"
+                    reply.fail e.to_s
                 end
-
-                {:output => output,
-                 :pkgstatus => status}
             end
 
             def help
                 <<-EOH
-                Package Agent
-                =============
+                Simple RPC Package agent using Puppet Providers
+                ===============================================
 
-                Agent to manage packages using the Puppet package provider
+                This is a package management agent that uses the Reductive Labs Puppet
+                providers under the hood to achieve platform independance
 
-                Accepted Messages
-                -----------------
+                ACTION:
+                    install, update, uninstall, purge, status
 
-                The request should be a hash of action and package:
+                INPUT:
+                    :package    The package to affect
 
-                {"action" => "update"
-                 "package" => "zsh"}
-
-                Possible actions are:
-                install, update  - install or update to latest a package
-                uninstall, purge - uninstall or purge a package
-                status           - returns just the status of a package
-
-                Purging for YUM means yum remove which will also remove without prompts
-                anything that is dependant on the given package, use with care
-
-                Returned Data
-                -------------
-
-                Returns a hash that maps to the package provider's properties method
+                OUTPUT:
+                    :output     Output from Puppet - usually this is just nil
+                    :properties The state of the package after the action was performed
                 EOH
             end
         end
