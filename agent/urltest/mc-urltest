@@ -6,12 +6,12 @@
 
 require 'mcollective'
 
-oparser = MCollective::Optionparser.new({}, "filter")
+include MCollective::RPC
 
-options = oparser.parse{|parser, options|
+options = rpcoptions do |parser, options|
     parser.define_head "Performs a test of a url and show stats from all agents"
     parser.banner = "Usage: mc-urltest [options] url"
-}
+end
 
 if ARGV.length > 0
     url = ARGV.shift
@@ -21,37 +21,26 @@ else
 end
 
 begin
-    options[:filter]["agent"] = "urltest"
+    tester = rpcclient("urltest")
 
-    client = MCollective::Client.new(options[:config])
-    client.options = options
+    tester.perftest(:url => url).each do |result|
+        res = result[:data]
 
-    report = []
-
-    stats = client.discovered_req({"url" => url}, "urltest") do |res|
-        print(".")
-
-        res = res[:body]
-
-        report <<  "Tester Node: #{res['testerlocation']}"
-        report << "       Lookup Time: #{res['lookuptime']}"
-        report << "      Connect Time: #{res['connectime']}"
-        report << "     Pre-Xfer Time: #{res['prexfertime']}"
-        report << "   Start-Xfer Time: #{res['startxfer']}"
-        report << "        Total Time: #{res['totaltime']}"
-        report << "     Bytes Fetched: #{res['bytesfetched']}"
-        report << ""
-        report << ""
+        puts "Tester Node: #{res[:testerlocation]}"
+        puts "       Lookup Time: #{res[:lookuptime]}"
+        puts "      Connect Time: #{res[:connectime]}"
+        puts "     Pre-Xfer Time: #{res[:prexfertime]}"
+        puts "   Start-Xfer Time: #{res[:startxfer]}"
+        puts "        Total Time: #{res[:totaltime]}"
+        puts "     Bytes Fetched: #{res[:bytesfetched]}"
+        puts ""
+        puts ""
     end
-
-    puts; puts
 rescue Exception => e
     raise e
 end
 
-puts report.join("\n")
-
-client.display_stats(stats)
+printrpcstats
 
 # vi:tabstop=4:expandtab:ai
 

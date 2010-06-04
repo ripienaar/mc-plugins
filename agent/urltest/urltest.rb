@@ -9,29 +9,23 @@ module MCollective
         # See http://code.google.com/p/mcollective-plugins/wiki/AgentUrltest
         #
         # Released under the terms of the GPLv2
-        class Urltest
+        class Urltest<RPC::Agent
             attr_reader :timeout, :meta
 
-            def initialize
-                @timeout = 10
-                @log = Log.instance
-                @config = Config.instance
-
-                @meta = {:license => "GPLv2",
+            def startup_hook
+                @meta = {:license => "Apache License 2",
                          :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/"}
+                         :url => "http://code.google.com/p/mcollective-plugins/",
+                         :version => "1.1"}
 
+                @timeout = 10
             end
                 
-            def handlemsg(msg, connection)
-                req = msg[:body]
-
-                result = {}
-
-                result["testurl"] = req["url"]
+            def perftest_action
+                validate :url, :shellsafe
 
                 begin
-                    url = URI.parse(req["url"])
+                    url = URI.parse(request[:url])
         
                     times = {}
                             
@@ -59,59 +53,44 @@ module MCollective
         
                         times["end"] = Time.now
         
-                        result["lookuptime"] = times["afterdns"] - times["beforedns"]
-                        result["connectime"] = times["afteropen"] - times["beforeopen"]
-                        result["prexfertime"] = times["firstline"] - times["afteropen"]
-                        result["startxfer"] = times["firstline"] - times["afterrequest"]
-                        result["bytesfetched"] = response.join.length
-                        result["totaltime"] = times["end"] - times["beforedns"]
+                        reply[:lookuptime] = times["afterdns"] - times["beforedns"]
+                        reply[:connectime] = times["afteropen"] - times["beforeopen"]
+                        reply[:prexfertime] = times["firstline"] - times["afteropen"]
+                        reply[:startxfer] = times["firstline"] - times["afterrequest"]
+                        reply[:bytesfetched] = response.join.length
+                        reply[:totaltime] = times["end"] - times["beforedns"]
 
-                        if @config.pluginconf.include?("urltest.syslocation")
-                            result["testerlocation"] = @config.pluginconf["urltest.syslocation"]
+                        if Config.instance.pluginconf.include?("urltest.syslocation")
+                            reply[:testerlocation] = Config.instance.pluginconf["urltest.syslocation"]
                         else
-                            result["testerlocation"] = "Please set plugin.urltest.syslocation"
+                            reply[:testerlocation] = "Please set plugin.urltest.syslocation"
                         end
                     else
-                        raise("Unsupported url scheme: #{url.scheme}")
+                        reply.fail "Unsupported url scheme: #{url.scheme}"
+                        return
                     end
                 rescue Exception => e
-                    result["exception"] = e.to_s
+                    reply.fail e.to_s
+                    return
                 end
-
-                result
             end
 
             def help
                 <<-EOH
-                URL Tester
-                =============
+                SimpleRPC URL Tester
+                ====================
 
-                Performs a simple HTTP get against a web server and return stats about the request.
+                This is a simple url tester that connects to a supplied url
+                and return some simple metrics.
 
-                Configuration
-                -------------
-               
-                Set the plugin.urltest.syslocation option to a string that will be the location report
-                for the node.
+                ACTION:
+                    perftest
 
-                Accepted Messages
-                -----------------
+                INPUT:
+                    :url    The url to test, only http://... is supported
 
-                Input should be a hash of the form:
-
-                {"url" => "http://digg.com"}
-
-                The output will be a hash more or less like this:
-
-                  {"testurl"=>"http://digg.com/",
-                   "lookuptime"=>0.0011,
-                   "prexfertime"=>0.322711,
-                   "startxfer"=>0.322677,
-                   "bytesfetched"=>89054,
-                   "connectime"=>0.181278,
-                   "testerlocation"=>"Your Network",
-                   "totaltime"=>2.671358},
-
+                OUTPUT:
+                    A hash with various performance metrics
                 EOH
             end
         end
