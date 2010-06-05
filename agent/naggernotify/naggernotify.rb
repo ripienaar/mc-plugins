@@ -28,7 +28,7 @@ module MCollective
                
                 begin
                     nagger = Nagger::Config.new(@configfile, false)
-	                msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "") 	
+                    msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "")
 
                     unless nagger.plugins.include?(msg.recipient.protocol.capitalize) 
                         reply.fail! "Don't know how to handle protocol #{msg.recipient.protocol.capitalize}" 
