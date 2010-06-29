@@ -10,28 +10,29 @@ module MCollective
         class Naggernotify<RPC::Agent
             require 'nagger'
 
+            metadata    :name        => "SimpleRPC Plugin for The Nagger Nagios Notifier",
+                        :description => "Agent to send messages via nagger",
+                        :author      => "R.I.Pienaar",
+                        :license     => "Apache License 2.0",
+                        :version     => "1.2",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 2
+
             def startup_hook
-                meta[:license] = "Apache License 2.0"
-                meta[:author] = "R.I.Pienaar"
-                meta[:version] = "1.1"
-                meta[:url] = "http://mcollective-plugins.googlecode.com/"
-
-                @timeout = 2
-
                 @configfile = @config.pluginconf["nagger.configfile"] || "/etc/nagger/nagger.cfg"
             end
 
-            def sendmsg_action
+            action "sendmsg" do
                 validate :recipient, :shellsafe
                 validate :message, :shellsafe
                 validate :subject, :shellsafe
-               
+
                 begin
                     nagger = Nagger::Config.new(@configfile, false)
                     msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "")
 
-                    unless nagger.plugins.include?(msg.recipient.protocol.capitalize) 
-                        reply.fail! "Don't know how to handle protocol #{msg.recipient.protocol.capitalize}" 
+                    unless nagger.plugins.include?(msg.recipient.protocol.capitalize)
+                        reply.fail! "Don't know how to handle protocol #{msg.recipient.protocol.capitalize}"
                     end
 
                     Nagger::Spool.createmsg msg
@@ -40,29 +41,6 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Failed to send message: #{e}"
                 end
-            end
-
-            def help
-                <<-EOH
-                SimpleRPC Agent for Nagger
-                ==========================
-
-                This agent lets you send messages via MCollective to any recipient or protocol
-                Nagger has a plugin for.
-
-                For information about Nagger see http://code.google.com/p/nagger/
-
-                ACTIONS:
-                    sendmessage
-
-                INPUT:
-                    :message        The body of the message
-                    :recipient      The Nagger recipient
-                    :subject        The message subject
-
-                OUTPUT:
-                    :msg            A message indicating succcess
-                EOH
             end
         end
     end

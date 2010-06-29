@@ -12,47 +12,46 @@ module MCollective
         class Urltest<RPC::Agent
             attr_reader :timeout, :meta
 
-            def startup_hook
-                @meta = {:license => "Apache License 2",
-                         :author => "R.I.Pienaar <rip@devco.net>",
-                         :url => "http://code.google.com/p/mcollective-plugins/",
-                         :version => "1.1"}
+            metadata    :name        => "SimpleRPC URL Testing Agent",
+                        :description => "Agent that connects to a URL and returns some statistics",
+                        :author      => "R.I.Pienaar",
+                        :license     => "GPLv2",
+                        :version     => "1.2",
+                        :url         => "http://mcollective-plugins.googlecode.com/",
+                        :timeout     => 60
 
-                @timeout = 10
-            end
-                
-            def perftest_action
+            action perftest do
                 validate :url, :shellsafe
 
                 begin
                     url = URI.parse(request[:url])
-        
+
                     times = {}
-                            
+
                     if url.scheme == "http"
                         times["beforedns"] = Time.now
                         name = TCPSocket.gethostbyname(url.host)
                         times["afterdns"] = Time.now
-        
+
                         times["beforeopen"] = Time.now
                         socket = TCPSocket.open(url.host, url.port)
                         times["afteropen"] = Time.now
-        
+
                         socket.print("GET #{url.request_uri} HTTP/1.1\r\nHost: #{url.host}\r\nUser-Agent: Webtester\r\nAccept: */*\r\nConnection: close\r\n\r\n")
                         times["afterrequest"] = Time.now
-        
+
                         response = Array.new
-        
+
                         while line = socket.gets
                             times["firstline"] = Time.now unless times.include?("firstline")
-        
+
                             response << line
                         end
-        
+
                         socket.close
-        
+
                         times["end"] = Time.now
-        
+
                         reply[:lookuptime] = times["afterdns"] - times["beforedns"]
                         reply[:connectime] = times["afteropen"] - times["beforeopen"]
                         reply[:prexfertime] = times["firstline"] - times["afteropen"]
@@ -73,25 +72,6 @@ module MCollective
                     reply.fail e.to_s
                     return
                 end
-            end
-
-            def help
-                <<-EOH
-                SimpleRPC URL Tester
-                ====================
-
-                This is a simple url tester that connects to a supplied url
-                and return some simple metrics.
-
-                ACTION:
-                    perftest
-
-                INPUT:
-                    :url    The url to test, only http://... is supported
-
-                OUTPUT:
-                    A hash with various performance metrics
-                EOH
             end
         end
     end
