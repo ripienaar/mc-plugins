@@ -21,7 +21,7 @@ else
 end
 
 begin
-    tester = rpcclient("urltest")
+    tester = rpcclient("urltest", :options => options)
 
     tester.perftest(:url => url).each do |result|
         res = result[:data]
