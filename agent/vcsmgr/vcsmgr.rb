@@ -15,6 +15,12 @@ module MCollective
                 @svn = @config.pluginconf["vcsmgr.svn"] || "/usr/bin/svn"
             end
 
+            action "svn_info" do
+                validate :path, :shellsafe
+
+                reply.data.merge!(svn_info(request[:path]))
+            end
+
             action "svn_update" do
                 validate :path, :shellsafe
 
