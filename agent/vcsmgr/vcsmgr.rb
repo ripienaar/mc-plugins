@@ -26,7 +26,7 @@ module MCollective
 
                 svn_validcheckout?(request[:path])
 
-                svnout = %x[#{@svn} up #{request[:path]}]
+                svnout = %x[#{@svn} up #{request[:path]}].chomp
                 svnexit = $?.exitstatus
 
                 reply.fail "svn up failed with exit code #{svnexit}" unless svnexit == 0
