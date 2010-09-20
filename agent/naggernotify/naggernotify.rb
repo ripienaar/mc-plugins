@@ -25,11 +25,16 @@ module MCollective
             action "sendmsg" do
                 validate :recipient, :shellsafe
                 validate :message, :shellsafe
-                validate :subject, :shellsafe
+                validate :subject, :shellsafe if request.include?(:subject)
 
                 begin
                     nagger = Nagger::Config.new(@configfile, false)
-                    msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "")
+
+                    if request.include?(:subject)
+                        msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "")
+                    else
+                        msg = Nagger::Message.new(request[:recipient], request[:message], "", "")
+                    end
 
                     unless nagger.plugins.include?(msg.recipient.protocol.capitalize)
                         reply.fail! "Don't know how to handle protocol #{msg.recipient.protocol.capitalize}"
