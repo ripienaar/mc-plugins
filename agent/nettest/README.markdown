@@ -1,12 +1,13 @@
 # MCollective Ping Agent
 
-This is a simple agent that will execute a ping remotely on mcollective hosts
+This is a simple agent that will execute a ping or remote connection test on mcollective hosts
 
 I often find myself logging onto boxed to ping different sites to diagnose local or remote network issues, this means I can now just issue a single command and get results from anywhere I'm running mcollective.
 
 ## Usage
 
-`mc-rpc ping ping fqdn="hostname"`
+`mc-rpc nettest ping fqdn="hostname"`
+`mc-rpm nettest connect fqdn="hostname" port="nn"`
 
 ## Requirements
 
@@ -73,7 +74,4 @@ I often find myself logging onto boxed to ping different sites to diagnose local
 
 ## TODO
 
-Make a more general remote check agent to support
-
-1. HTTP status
-2. Arbitrary port connect
+1. HTTP status checks
