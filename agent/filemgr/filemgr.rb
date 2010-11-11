@@ -68,7 +68,7 @@ module MCollective
                     end
 
                     reply[:mode] = "%o" % [stat.mode]
-                    reply[:md5] = Digest::MD5.hexdigest(File.read(file))
+                    reply[:md5] = Digest::MD5.hexdigest(File.read(file)) if stat.file?
 
                     reply[:type] = "directory" if stat.directory?
                     reply[:type] = "file" if stat.file?
