@@ -13,7 +13,7 @@ action "touch", :description => "Creates an empty file or touch it's timestamp" 
         :description => "File to touch",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => false,
+        :optional    => true,
         :maxlength    => 256
 end
 
@@ -23,7 +23,7 @@ action "remove", :description => "Removes a file" do
         :description => "File to remove",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => false,
+        :optional    => true,
         :maxlength    => 256
 end
 
@@ -35,8 +35,12 @@ action "status", :description => "Basic information about a file" do
         :description => "File to get information for",
         :type        => :string,
         :validation  => '^.+$',
-        :optional    => false,
+        :optional    => true,
         :maxlength    => 256
+
+    output :name,
+           :description => "File name",
+           :display_as => "Name"
 
     output :output,
            :description => "Human readable information about the file",

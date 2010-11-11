@@ -36,6 +36,7 @@ module MCollective
 
             def status
                 file = get_filename
+                reply[:name] = file
                 reply[:output] = "not present"
                 reply[:present] = 0
                 reply[:size] = 0
@@ -78,6 +79,7 @@ module MCollective
                     reply[:type] = "blockdev" if stat.blockdev?
                 else
                     logger.debug("Asked for status of '#{file}' - it is not present")
+                    reply.fail! "#{file} does not exist"
                 end
             end
 
@@ -94,7 +96,7 @@ module MCollective
                     reply.statusmsg = "OK"
                 rescue
                     logger.warn("Could not remove file '#{file}'")
-                    reply.fail "Could not remove file '#{file}'", 1
+                    reply.fail! "Could not remove file '#{file}'"
                 end
             end
 
@@ -105,7 +107,7 @@ module MCollective
                     logger.debug("Touched file '#{file}'")
                 rescue
                     logger.warn("Could not touch file '#{file}'")
-                    reply.fail "Could not touch file '#{file}'", 1
+                    reply.fail! "Could not touch file '#{file}'"
                 end
             end
         end
