@@ -1,17 +1,17 @@
 module MCollective
     module Agent
-        # A SimpleRPC plugin that uses the Nagger notify system to send messages.
+        # A SimpleRPC plugin that uses the Angelia notify system to send messages.
         #
         # Messages can be sent using the normal mc-rpc command:
         #
-        # mc-rpc naggernotify sendmsg message="hello world" recipient="xmpp://you@your.com" subject="test" -v
+        # mc-rpc angelianotify sendmsg message="hello world" recipient="xmpp://you@your.com" subject="test" -v
         #
-        # For information about Nagger see http://code.google.com/p/nagger/
-        class Naggernotify<RPC::Agent
-            require 'nagger'
+        # For information about Angelia see http://github.com/ripienaar/angelia
+        class Angelianotify<RPC::Agent
+            require 'angelia'
 
-            metadata    :name        => "SimpleRPC Plugin for The Nagger Nagios Notifier",
-                        :description => "Agent to send messages via nagger",
+            metadata    :name        => "SimpleRPC Plugin for The Angelia Nagios Notifier",
+                        :description => "Agent to send messages via angelia",
                         :author      => "R.I.Pienaar",
                         :license     => "Apache License 2.0",
                         :version     => "1.2",
@@ -19,7 +19,7 @@ module MCollective
                         :timeout     => 2
 
             def startup_hook
-                @configfile = @config.pluginconf["nagger.configfile"] || "/etc/nagger/nagger.cfg"
+                @configfile = @config.pluginconf["angelia.configfile"] || "/etc/angelia/angelia.cfg"
             end
 
             action "sendmsg" do
@@ -28,19 +28,19 @@ module MCollective
                 validate :subject, :shellsafe if request.include?(:subject)
 
                 begin
-                    nagger = Nagger::Config.new(@configfile, false)
+                    angelia = Angelia::Config.new(@configfile, false)
 
                     if request.include?(:subject)
-                        msg = Nagger::Message.new(request[:recipient], request[:message], request[:subject], "")
+                        msg = Angelia::Message.new(request[:recipient], request[:message], request[:subject], "")
                     else
-                        msg = Nagger::Message.new(request[:recipient], request[:message], "", "")
+                        msg = Angelia::Message.new(request[:recipient], request[:message], "", "")
                     end
 
-                    unless nagger.plugins.include?(msg.recipient.protocol.capitalize)
+                    unless angelia.plugins.include?(msg.recipient.protocol.capitalize)
                         reply.fail! "Don't know how to handle protocol #{msg.recipient.protocol.capitalize}"
                     end
 
-                    Nagger::Spool.createmsg msg
+                    Angelia::Spool.createmsg msg
 
                     reply[:msg] = "Spooled message for #{request[:recipient]}"
                 rescue Exception => e

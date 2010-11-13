@@ -1,13 +1,13 @@
-metadata    :name        => "SimpleRPC Plugin for The Nagger Nagios Notifier",
-            :description => "Agent to send messages via nagger", 
+metadata    :name        => "SimpleRPC Plugin for The Nagelia Nagios Notifier",
+            :description => "Agent to send messages via angelia",
             :author      => "R.I.Pienaar",
             :license     => "Apache License 2.0",
-            :version     => "1.2",
+            :version     => "1.3",
             :url         => "http://mcollective-plugins.googlecode.com/",
             :timeout     => 2
 
 action "sendmsg", :description => "Send a message" do
-    input :recipient, 
+    input :recipient,
           :prompt      => "Recipient",
           :description => "Message Recipient",
           :type        => :string,
@@ -15,7 +15,7 @@ action "sendmsg", :description => "Send a message" do
           :optional    => false,
           :maxlength   => 120
 
-    input :subject, 
+    input :subject,
           :prompt      => "Subject",
           :description => "Message Subject",
           :type        => :string,
@@ -23,7 +23,7 @@ action "sendmsg", :description => "Send a message" do
           :optional    => true,
           :maxlength   => 120
 
-    input :message, 
+    input :message,
           :prompt      => "Message",
           :description => "Message Body",
           :type        => :string,
