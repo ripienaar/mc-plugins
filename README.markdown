@@ -12,3 +12,6 @@ And the code lives at:
 
    https://github.com/puppetlabs/mcollective-plugins
 
+If you have any qyestions about these plugins please contact
+
+R.I.Pienaar <rip@devco.net>
