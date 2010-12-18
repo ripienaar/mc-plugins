@@ -3,8 +3,12 @@ What is it?
 
 A collection of plugins for The Marionette Collective.
 
-This is only the code repository, please see:
+Most of the plugins that used to be here have been moved
+to Puppet Labs and can be found documented at:
 
-   http://mcollective-plugins.googlecode.com/
+   http://projects.puppetlabs.com/projects/mcollective-plugins/wiki/Wiki
 
-For further information.
+And the code lives at:
+
+   https://github.com/puppetlabs/mcollective-plugins
+
