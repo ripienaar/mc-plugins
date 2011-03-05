@@ -1,0 +1,252 @@
+#!/usr/bin/env ruby
+
+# Simple IRB shell for mcollective
+#
+#    mc-irb nrpe
+#    Determining the amount of hosts matching filter for 2 seconds .... 47
+#    >> rpc :runcommand, :command => "check_disks"
+#
+#     * [ ============================================================> ] 47 / 47
+#
+#
+#     dev1.your.net                      Request Aborted
+#        CRITICAL
+#                     Output: DISK CRITICAL - free space: / 176 MB (4% inode=86%);
+#                  Exit Code: 2
+#           Performance Data:  /=3959MB;3706;3924;0;4361 /boot=26MB;83;88;0;98 /dev/shm=0MB;217;230;0;256
+#
+#    => true
+#    >> mchelp
+#    <shows the DDL based help for the chosen agent>
+#    => true
+#    >> rpc(:runcommand, :command => "check_disks") do |resp|
+#    ?> puts resp[:sender] + ":   " + resp[:data][:output]
+#    >> end
+#
+#     * [ ============================================================> ] 47 / 47
+#
+#     dev1.your.net:   DISK OK
+#     <snip>
+#    => true
+#    >>
+#
+# You can access the agent variable via @agent from where you can do the usual manipulation of filters etc,
+# if you wish to switch to a different agent mid run just do newagent("some_other_agent")
+#
+# If you install the Bond gem you'll get some DDL assisted completion in the rpc method
+require 'rubygems'
+require 'irb'
+
+def consolize &block
+    yield
+
+    IRB.setup(nil)
+    irb = IRB::Irb.new
+    IRB.conf[:MAIN_CONTEXT] = irb.context
+    irb.context.evaluate("require 'irb/completion'", 0)
+
+    begin
+        require 'bond'
+        Bond.start
+
+        Bond.complete(:method => "rpc") do |e|
+            begin
+                if e.argument == 1
+                    if e.arguments.last == "?"
+                        puts "\n\nActions for #{@agent_name}:\n"
+
+                        @agent.ddl.actions.each do |action|
+                           puts "%20s - %s" % [ ":#{action}", @agent.ddl.action_interface(action)[:description] ]
+                        end
+
+                        print "\n" + e.line
+                    end
+
+                    @agent.ddl.actions
+
+                elsif e.argument > 1
+                    action = eval(e.arguments[0]).to_s
+                    ddl = @agent.ddl.action_interface(action)
+
+                    if e.arguments.last == "?"
+                        puts "\n\nArguments for #{action}:\n"
+                        ddl[:input].keys.each do |input|
+                            puts "%20s - %s" % [ ":#{input}", ddl[:input][input][:description] ]
+                        end
+
+                        print "\n" + e.line
+                    end
+
+                    [ddl[:input].keys, :verbose].flatten
+                end
+            rescue Exception
+                []
+            end
+        end
+    rescue Exception
+    end
+
+    trap("SIGINT") do
+        irb.signal_handle
+    end
+    catch(:IRB_EXIT) do
+        irb.eval_input
+    end
+end
+
+def mchelp
+    system("mc-rpc --agent-help #{@agent_name}|less")
+    true
+end
+
+def rpc(method_name, *args, &block)
+    unless block_given?
+        if args.size > 0
+            args = args.first
+        else
+            args = {}
+        end
+
+        if args[:verbose]
+            args.delete(:verbose)
+
+            printrpc(@agent.send(method_name, args), :verbose => true)
+            printrpcstats
+        else
+            printrpc @agent.send(method_name, args)
+            printrpcstats
+        end
+
+    else
+        @agent.send(method_name, args.first).each do |resp|
+            yield resp
+        end
+
+        printrpcstats
+    end
+
+    true
+rescue MCollective::DDLValidationError => e
+    puts "Request did not pass DDL validation: #{e}"
+end
+
+def print_filter
+    puts "Active Filter matched #{discover.size} hosts:"
+    puts "\tIdentity: #{@agent.filter['identity'].pretty_inspect}"
+    puts "\t Classes: #{@agent.filter['cf_class'].pretty_inspect}"
+    puts "\t   Facts: #{@agent.filter['fact'].pretty_inspect}"
+    puts "\t  Agents: #{@agent.filter['agent'].pretty_inspect}"
+
+    discover.size > 0 ? true : false
+end
+
+def newagent(agent)
+    @agent_name = agent
+
+    @options[:filter]["agent"] = []
+    @agent = rpcclient(@agent_name, :options => @options)
+
+    discover
+
+    @agent.progress = true
+
+    print_filter
+end
+
+def identity_filter(*args)
+    @agent.identity_filter(*args)
+
+    print_filter
+end
+
+def fact_filter(*args)
+    @agent.fact_filter(*args)
+
+    print_filter
+end
+
+def agent_filter(*args)
+    @agent.agent_filter(*args)
+
+    print_filter
+end
+
+def class_filter(*args)
+    @agent.class_filter(*args)
+
+    print_filter
+end
+
+def reset_filter
+    @agent.reset_filter
+
+    print_filter
+end
+
+def reset
+    @agent.reset
+
+    print_filter
+end
+
+def discover
+    @agent.discover
+end
+
+def mc?
+    puts <<EOF
+    Available Commands:
+
+        rpc                                 - Performs an RPC request
+        reset                               - Resets the discovered knowledge
+        discover                            - Performs a new discovery showing
+                                              hosts that was found
+        newagent                            - Switches to a new agent
+        mchelp                              - The DDL created help for the agent
+
+    Filter Commands:
+        Filter arguments should be enclosed in "your.host.com" if they are strings
+        else use /your.host/ to match Regular expressions
+
+        identity_filter [identity]          - Sets an identity filter
+        fact_filter [factname], [factvalue] - Sets a fact filter
+        class_filter [classname]            - Sets a class filter
+        agent_filter [agentname]            - Sets an agent filter
+        reset_filter                        - Resets to the filter to blank
+        print_filter                        - Displays current filter
+
+    Available Variables:
+
+        @agent_name                         - The name of the active agent
+        @agent                              - The active RPC client
+
+    Completions:
+
+        While doing an RPC request, press ?<tab> for a list of actions or
+        arguments, do simple :<tab> to get completion on action names and
+        arguments without description of each
+
+EOF
+    true
+end
+
+consolize do
+    require 'mcollective'
+
+
+    include MCollective::RPC
+
+    @options = rpcoptions
+
+    unless ARGV.size == 1
+        puts "Please specify an agent name on the command line"
+        exit 1
+    end
+
+    puts "The Marionette Collective Interactive Ruby Shell version #{MCollective.version}"
+
+    puts
+    newagent(ARGV[0])
+    puts
+    puts "Use mc? to get help on using this shell"
+end
