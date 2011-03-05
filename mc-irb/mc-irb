@@ -45,6 +45,9 @@ def consolize &block
     IRB.conf[:MAIN_CONTEXT] = irb.context
     irb.context.evaluate("require 'irb/completion'", 0)
 
+    install_alias_method :help, :mc_irb_help, IRB::ExtendCommandBundle::OVERRIDE_ALL
+    install_alias_method :mc?, :mc_irb_help, IRB::ExtendCommandBundle::OVERRIDE_ALL
+
     begin
         require 'bond'
         Bond.start
@@ -193,7 +196,7 @@ def discover
     @agent.discover
 end
 
-def mc?
+def mc_irb_help
     puts <<EOF
     Available Commands:
 
@@ -247,6 +250,4 @@ consolize do
 
     puts
     newagent(ARGV[0])
-    puts
-    puts "Use mc? to get help on using this shell"
 end
