@@ -71,7 +71,7 @@ action "hvinfo", :description => "Hypervisor Information" do
 end
 
 action "domaininfo", :description => "Domain Information" do
-    display :always
+    display :ok
 
     input :domain,
         :prompt      => "Domain Name",
@@ -115,7 +115,7 @@ action "domaininfo", :description => "Domain Information" do
 end
 
 action "domainxml", :description => "Retrieve the full libvirt XML description for a domain" do
-    display :always
+    display :ok
 
     input :domain,
         :prompt      => "Domain Name",
@@ -132,7 +132,7 @@ end
 
 [:destroy, :shutdown, :suspend, :resume, :create, :start].each do |act|
     action act.to_s, :description => "#{act.to_s.capitalize} a domain" do
-        display :always
+        display :ok
 
         input :domain,
             :prompt      => "Domain Name",

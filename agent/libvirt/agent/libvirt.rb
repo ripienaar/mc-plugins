@@ -53,6 +53,7 @@ module MCollective
                     reply[:state_description] = virtstates[info.state]
                     reply[:uuid] = domain.uuid
                 rescue Exception => e
+                    conn.close
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 end
 
@@ -68,6 +69,7 @@ module MCollective
                     domain = conn.lookup_domain_by_name(request[:domain])
                     reply[:xml] = domain.xml_desc
                 rescue Exception => e
+                    conn.close
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 end
 
@@ -111,8 +113,11 @@ module MCollective
                     domain = conn.lookup_domain_by_name(name)
                     domain.send(action.to_sym)
 
+                    conn.close
+
                     return domain.info.state
                 rescue Exception => e
+                    conn.close
                     reply.fail! "Could not #{action} domain %s : %s" % [request[:domain], e]
                 end
             end

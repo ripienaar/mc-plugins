@@ -6,12 +6,13 @@ Basic management of Libvirt Hypervisors and domains
 Usage?
 ======
 
-There isn't a bundled application, it works fine through the normal RPC client:
+An mco application is included that wraps arond the basic capabilities of the agent
+for full details see _mco virt --help_
 
-Hypervisor Information:
+Hypervisor / Domain Information:
 -----------------------
 <pre>
-% mco rpc libvirt hvinfo
+% mco virt info
 
 kvm1.xx.net
    Inactive Domains: []
@@ -26,52 +27,43 @@ kvm1.xx.net
          Numa Nodes: 1
         Free Memory: 2292154368
                CPUs: 2
-     Active Domains: ["dev2_devco", "dev4_devco", "dev5_devco", "dev3_devco"]
+     Active Domains: ["dev2_devco", "dev3_devco", "dev4_devco", "dev5_devco"]
                 MHz: 1297
             Threads: 1
-
-Finished processing 1 / 1 hosts in 103.90 ms
 </pre>
 
-Domain Information:
--------------------
-
 <pre>
-% mco rpc libvirt domaininfo domain=dev2_devco
+% mco virt info dev2_devco
 
 kvm1.xx.net
         State: 1
-        State: Running
-         UUID: fd402bc2-9207-fb2a-d650-a3ba85214578
-    Autostart: true
-       Memory: 524288
-        VCPUs: 1
    Max Memory: 524288
-     CPU Time: 29540000000
-
-Finished processing 1 / 1 hosts in 92.90 ms
+       Memory: 524288
+     CPU Time: 35180000000
+        State: Running
+         UUID: ca74dc32-0f09-7265-b67e-151b4fb5dd90
+    Autostart: false
+        VCPUs: 1
 </pre>
 
 Manage a Domain:
 ----------------
 
 <pre>
-% mco rpc libvirt destroy domain=dev4_devco
+% mco virt stop dev4_devco
 
 kvm1.xx.net
    State: 5
    State: Shut off
-
-Finished processing 1 / 1 hosts in 320.48 ms
 </pre>
 
 Other available actions are:
 
- * create / start
- * destroy
- * resume
- * shutdown
+ * start
+ * stop
  * suspend
+ * resume
+ * destroy
 
 Todo?
 ====
