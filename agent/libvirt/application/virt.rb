@@ -4,6 +4,7 @@ class MCollective::Application::Virt<MCollective::Application
     usage "Usage: mco virt info"
     usage "Usage: mco virt info <domain>"
     usage "Usage: mco virt xml <domain>"
+    usage "Usage: mco virt find <pattern>"
     usage "Usage: mco virt [stop|start|suspend|resume|destroy] <domain>"
     usage "Usage: mco virt domains"
 
@@ -15,7 +16,7 @@ class MCollective::Application::Virt<MCollective::Application
     def validate_configuration(configuration)
         raise "Please specify a command, see --help for details" unless configuration[:command]
 
-        if ["xml", "stop", "start", "suspend", "resume", "destroy"].include?(configuration[:command])
+        if ["xml", "stop", "start", "suspend", "resume", "destroy", "find"].include?(configuration[:command])
             raise "%s requires a domain name, see --help for details" % [configuration[:command]] unless configuration[:domain]
         end
     end
@@ -60,6 +61,21 @@ class MCollective::Application::Virt<MCollective::Application
 
     def destroy_command
         printrpc virtclient.destroy(:domain => configuration[:domain])
+    end
+
+    def find_command
+        pattern = Regexp.new(configuration[:domain])
+
+        virtclient.hvinfo.each do |r|
+            domains = r[:data][:active_domains] << r[:data][:inactive_domains]
+            matched = domains.grep pattern
+
+            if matched.size > 0
+                puts "%30s:    %s" % [r[:sender], matched.sort.join(", ")]
+            end
+        end
+
+        puts
     end
 
     def virtclient
