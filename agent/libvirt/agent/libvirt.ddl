@@ -156,6 +156,26 @@ action "definedomain", :description => "Defines a domain from a XML file describ
            :display_as => "State"
 end
 
+action "undefinedomain", :description => "Undefines a domain" do
+    input :domain,
+        :prompt      => "Domain Name",
+        :description => "Name of a defined domain",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => false,
+        :maxlength   => 50
+
+    input :destroy,
+        :prompt      => "Destroy",
+        :description => "Should the domain be destroyed before undefining",
+        :type        => :boolean,
+        :optional    => true
+
+    output :status,
+           :description => "Status",
+           :display_as => "Status"
+end
+
 [:destroy, :shutdown, :suspend, :resume, :create, :start].each do |act|
     action act.to_s, :description => "#{act.to_s.capitalize} a domain" do
         display :ok

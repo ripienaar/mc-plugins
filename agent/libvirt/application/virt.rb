@@ -7,7 +7,8 @@ class MCollective::Application::Virt<MCollective::Application
     usage "Usage: mco virt find <pattern>"
     usage "Usage: mco virt [stop|start|suspend|resume|destroy] <domain>"
     usage "Usage: mco virt domains"
-    usage "Usage: mco define <domain> <remote xml file> [permanent]"
+    usage "Usage: mco virt define <domain> <remote xml file> [permanent]"
+    usage "Usage: mco virt undefine <domain> [destroy]"
 
     def post_option_parser(configuration)
         configuration[:command] = ARGV.shift if ARGV.size > 0
@@ -20,6 +21,15 @@ class MCollective::Application::Virt<MCollective::Application
         if ["xml", "stop", "start", "suspend", "resume", "destroy", "find"].include?(configuration[:command])
             raise "%s requires a domain name, see --help for details" % [configuration[:command]] unless configuration[:domain]
         end
+    end
+
+    def undefine_command
+        configuration[:destroy] = ARGV.shift if ARGV.size > 0
+
+        args = {:domain => configuration[:domain]}
+        args[:destroy] = true if configuration[:destroy] =~ /^dest/
+
+        printrpc virtclient.undefinedomain(args)
     end
 
     def define_command
@@ -83,7 +93,7 @@ class MCollective::Application::Virt<MCollective::Application
 
         virtclient.hvinfo.each do |r|
             domains = r[:data][:active_domains] << r[:data][:inactive_domains]
-            matched = domains.grep pattern
+            matched = domains.flatten.grep pattern
 
             if matched.size > 0
                 puts "%30s:    %s" % [r[:sender], matched.sort.join(", ")]
