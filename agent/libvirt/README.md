@@ -67,11 +67,34 @@ Other available actions are:
  * resume
  * destroy
 
+Create a Domain:
+----------------
+
+This requires you to have created the XML that describes the domain
+on the node already.  The _permanent_ argument is optional and is the
+difference between _virsh define_ and _virsh create_.
+
+<pre>
+% mco virt define dev4 /srv/kvm/etc/dev4.xml permanent
+
+   State Code: 1
+        State: Running
+</pre>
+
+Undefine a Domain:
+------------------
+
+This undefines a domain, you can optionally destroy the domain before
+undefining it else the request will fail.
+
+<pre>
+% mco virt undefine dev4 destroy
+</pre>
+
 Todo?
 ====
 
  * Expose more hypervisor information like device lists, network lists, storage lists etc
- * Allow for creation using provided XML
  * More stats so that full feature auto provisioning can be built
 
 Contact?
