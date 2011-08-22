@@ -53,11 +53,10 @@ module MCollective
                     reply[:state_description] = virtstates[info.state]
                     reply[:uuid] = domain.uuid
                 rescue Exception => e
-                    conn.close
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
+                ensure
+                    conn.close
                 end
-
-                conn.close
             end
 
             action "domainxml" do
@@ -69,11 +68,36 @@ module MCollective
                     domain = conn.lookup_domain_by_name(request[:domain])
                     reply[:xml] = domain.xml_desc
                 rescue Exception => e
-                    conn.close
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
+                ensure
+                    conn.close
                 end
+            end
 
-                conn.close
+            action "definedomain" do
+                validate :xmlfile, String
+                validate :domain, String
+
+                reply.fail!("Can't find XML file defining instance") unless File.exist?(request[:xmlfile])
+
+                begin
+                    conn = connect
+                    xml = File.read(request[:xmlfile])
+
+                    if request[:permanent]
+                        conn.define_domain_xml(xml)
+                    else
+                        conn.create_domain_xml(xml)
+                    end
+
+                    domain = conn.lookup_domain_by_name(request[:domain])
+                    reply[:state] = domain.info.state
+                    reply[:state_description] = virtstates[reply[:state]]
+                rescue Exception => e
+                    reply.fail! "Could not define domain %s: %s" % [request[:domain], e]
+                ensure
+                    conn.close
+                end
             end
 
             [:destroy, :shutdown, :suspend, :resume, :create].each do |act|
@@ -113,12 +137,11 @@ module MCollective
                     domain = conn.lookup_domain_by_name(name)
                     domain.send(action.to_sym)
 
-                    conn.close
-
                     return domain.info.state
                 rescue Exception => e
-                    conn.close
                     reply.fail! "Could not #{action} domain %s : %s" % [request[:domain], e]
+                ensure
+                    conn.close
                 end
             end
         end

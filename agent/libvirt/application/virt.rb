@@ -7,6 +7,7 @@ class MCollective::Application::Virt<MCollective::Application
     usage "Usage: mco virt find <pattern>"
     usage "Usage: mco virt [stop|start|suspend|resume|destroy] <domain>"
     usage "Usage: mco virt domains"
+    usage "Usage: mco define <domain> <remote xml file> [permanent]"
 
     def post_option_parser(configuration)
         configuration[:command] = ARGV.shift if ARGV.size > 0
@@ -19,6 +20,20 @@ class MCollective::Application::Virt<MCollective::Application
         if ["xml", "stop", "start", "suspend", "resume", "destroy", "find"].include?(configuration[:command])
             raise "%s requires a domain name, see --help for details" % [configuration[:command]] unless configuration[:domain]
         end
+    end
+
+    def define_command
+        configuration[:xmlfile] = ARGV.shift if ARGV.size > 0
+        configuration[:perm] = ARGV.shift if ARGV.size > 0
+
+        raise "Need a path to a remote XML file to define an instance" unless configuration[:xmlfile]
+
+        args = {}
+        args[:xmlfile] = configuration[:xmlfile]
+        args[:permanent] = true if configuration[:perm].to_s =~ /^perm/
+        args[:domain] = configuration[:domain]
+
+        printrpc virtclient.definedomain(args)
     end
 
     def info_command

@@ -103,7 +103,7 @@ action "domaininfo", :description => "Domain Information" do
 
     output :state,
            :description => "Domain State",
-           :display_as => "State"
+           :display_as => "State Code"
 
     output :state_description,
            :description => "Domain State",
@@ -130,6 +130,32 @@ action "domainxml", :description => "Retrieve the full libvirt XML description f
            :display_as => "XML"
 end
 
+action "definedomain", :description => "Defines a domain from a XML file describing it" do
+    display :always
+
+    input :domain,
+        :prompt      => "Domain Name",
+        :description => "Name of a defined domain",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => false,
+        :maxlength   => 50
+
+    input :permanent,
+        :prompt      => "Permanent",
+        :description => "Should the domain persist reboots",
+        :type        => :boolean,
+        :optional    => true
+
+    output :state,
+           :description => "Domain State",
+           :display_as => "State Code"
+
+    output :state_description,
+           :description => "Domain State",
+           :display_as => "State"
+end
+
 [:destroy, :shutdown, :suspend, :resume, :create, :start].each do |act|
     action act.to_s, :description => "#{act.to_s.capitalize} a domain" do
         display :ok
@@ -144,7 +170,7 @@ end
 
         output :state,
                :description => "Domain State",
-               :display_as => "State"
+               :display_as => "State Code"
 
         output :state_description,
                :description => "Domain State",
