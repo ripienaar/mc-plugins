@@ -9,6 +9,8 @@ Usage?
 An mco application is included that wraps arond the basic capabilities of the agent
 for full details see _mco virt --help_
 
+You need the ruby libvirt bindings installed, tested with version 0.3.0
+
 Hypervisor / Domain Information:
 -----------------------
 <pre>
