@@ -68,7 +68,6 @@ Other available actions are:
 Todo?
 ====
 
- * Make the hypervisor URL configurable, atm only QEMU and only unauthenticated
  * Expose more hypervisor information like device lists, network lists, storage lists etc
  * Allow for creation using provided XML
  * More stats so that full feature auto provisioning can be built

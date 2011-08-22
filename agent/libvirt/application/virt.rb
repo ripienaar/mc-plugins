@@ -60,9 +60,13 @@ class MCollective::Application::Virt<MCollective::Application
 
     def domains_command
         virtclient.hvinfo.each do |r|
-            domains = r[:data][:active_domains] << r[:data][:inactive_domains]
+            if r[:statuscode] == 0
+                domains = r[:data][:active_domains] << r[:data][:inactive_domains]
 
-            puts "%30s:    %s" % [r[:sender], domains.flatten.sort.join(", ")]
+                puts "%30s:    %s" % [r[:sender], domains.flatten.sort.join(", ")]
+            else
+                puts "%30s:    %s" % [r[:sender], r[:statusmsg]]
+            end
         end
 
         puts

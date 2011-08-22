@@ -35,9 +35,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not load hvm info: %s: %s" % [request[:domain], e]
                 ensure
-                    # http://web.archiveorange.com/archive/v/8XiUWgenYUvT8J107dnM
                     nodeinfo = nil
-                    GC.start
                     close(conn)
                 end
             end
@@ -48,6 +46,8 @@ module MCollective
                 conn = connect
 
                 begin
+                    has_domain?(request[:domain], conn)
+
                     domain = conn.lookup_domain_by_name(request[:domain])
                     info = domain.info
 
@@ -64,7 +64,6 @@ module MCollective
                 ensure
                     domain = nil
                     info = nil
-                    GC.start
 
                     close(conn)
                 end
@@ -76,13 +75,14 @@ module MCollective
                 conn = connect
 
                 begin
+                    has_domain?(request[:domain], conn)
+
                     domain = conn.lookup_domain_by_name(request[:domain])
                     reply[:xml] = domain.xml_desc
                 rescue Exception => e
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 ensure
                     domain = nil
-                    GC.start
 
                     close(conn)
                 end
@@ -111,7 +111,6 @@ module MCollective
                     reply.fail! "Could not define domain %s: %s" % [request[:domain], e]
                 ensure
                     domain = nil
-                    GC.start
 
                     close(conn)
                 end
@@ -122,6 +121,9 @@ module MCollective
 
                 begin
                     conn = connect
+
+                    has_domain?(request[:domain], conn)
+
                     domain = conn.lookup_domain_by_name(request[:domain])
 
                     if request[:destroy] && domain.active?
@@ -138,7 +140,6 @@ module MCollective
                     reply.fail! "Could not undefine domain %s: %s" % [request[:domain], e]
                 ensure
                     domain = nil
-                    GC.start
 
                     close(conn)
                 end
@@ -157,7 +158,9 @@ module MCollective
 
             private
             def connect
-                conn = ::Libvirt::open('qemu:///system')
+                url = @config.pluginconf["libvirt.url"] || "qemu:///system"
+
+                conn = ::Libvirt::open(url)
 
                 raise "Could not connect to hypervisor" if conn.closed?
 
@@ -166,9 +169,25 @@ module MCollective
 
             def close(conn)
                 if conn && !conn.closed?
-                    Log.info("Closing connection")
+                    # http://web.archiveorange.com/archive/v/8XiUWgenYUvT8J107dnM
+                    GC.start
                     conn.close
                 end
+            end
+
+            def domains(conn)
+                domains = []
+                conn.list_domains.each do |domain|
+                    domains << conn.lookup_domain_by_id(domain).name
+                end
+
+                domains << conn.list_defined_domains
+
+                domains.flatten.sort
+            end
+
+            def has_domain?(domain, conn)
+                raise "Unknown domain #{request[:domain]}" unless domains(conn).include?(request[:domain])
             end
 
             def virtstates
@@ -185,6 +204,8 @@ module MCollective
                 conn = connect
 
                 begin
+                    has_domain?(request[:domain], conn)
+
                     domain = conn.lookup_domain_by_name(name)
                     domain.send(action.to_sym)
 
@@ -193,8 +214,6 @@ module MCollective
                     reply.fail! "Could not #{action} domain %s : %s" % [request[:domain], e]
                 ensure
                     domain = nil
-                    GC.start
-
                     close(conn)
                 end
             end
