@@ -91,6 +91,31 @@ undefining it else the request will fail.
 % mco virt undefine dev4 destroy
 </pre>
 
+List all Domains:
+-----------------
+
+<pre>
+% mco virt domains
+
+           xen1.xx.net:    Domain-0, devco_net
+           kvm1.xx.net:    dev2_devco, dev3_devco, dev4_devco, dev5_devco
+           xen5.xx.net:    Domain-0, dev1_devco
+</pre>
+
+Find a Domain:
+--------------
+
+Searches for a domain based on a ruby pattern:
+
+<pre>
+% mco virt find devco
+
+           xen1.xx.net:    devco_net
+           kvm1.xx.net:    dev2_devco, dev3_devco, dev4_devco, dev5_devco
+           xen5.xx.net:    dev1_devco
+</pre>
+
+
 Todo?
 ====
 
