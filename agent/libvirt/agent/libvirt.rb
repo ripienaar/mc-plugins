@@ -21,8 +21,15 @@ module MCollective
                         reply[i] = nodeinfo.send(i)
                     end
 
-                    [:type, :version, :uri, :node_free_memory, :max_vcpus].each do |i|
+                    [:type, :version, :uri, :max_vcpus].each do |i|
                         reply[i] = conn.send(i)
+                    end
+
+                    # not implimented on all hypervisors
+                    begin
+                        reply[:node_free_memory] = conn.node_free_memory
+                    rescue
+                        reply[:node_free_memory] = 0
                     end
 
                     reply[:active_domains] = []
