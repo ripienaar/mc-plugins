@@ -100,11 +100,15 @@ class MCollective::Application::Virt<MCollective::Application
         pattern = Regexp.new(configuration[:domain])
 
         virtclient.hvinfo.each do |r|
-            domains = r[:data][:active_domains] << r[:data][:inactive_domains]
-            matched = domains.flatten.grep pattern
+            if r[:statuscode] == 0
+                domains = r[:data][:active_domains] << r[:data][:inactive_domains]
+                matched = domains.flatten.grep pattern
 
-            if matched.size > 0
-                puts "%30s:    %s" % [r[:sender], matched.sort.join(", ")]
+                if matched.size > 0
+                    puts "%30s:    %s" % [r[:sender], matched.sort.join(", ")]
+                end
+            else
+                puts "%30s:    %s" % [r[:sender], r[:statusmsg]]
             end
         end
 
