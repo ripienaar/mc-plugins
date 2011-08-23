@@ -72,11 +72,16 @@ module MCollective
                     reply[:state] = info.state
                     reply[:state_description] = virtstates[info.state]
                     reply[:uuid] = domain.uuid
-                    reply[:has_current_snapshot] = domain.has_current_snapshot?
-                    reply[:has_managed_save] = domain.has_managed_save?
-                    reply[:snapshots] = domain.list_snapshots
-                    reply[:num_of_snapshots] = domain.num_of_snapshots
                     reply[:persistent] = domain.persistent?
+
+                    # not on all versions of libvirt
+                    begin
+                        reply[:has_current_snapshot] = domain.has_current_snapshot?
+                        reply[:has_managed_save] = domain.has_managed_save?
+                        reply[:snapshots] = domain.list_snapshots
+                        reply[:num_of_snapshots] = domain.num_of_snapshots
+                    rescue
+                    end
                 rescue Exception => e
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 ensure
