@@ -25,24 +25,26 @@ module MCollective
                         reply[i] = conn.send(i)
                     end
 
-                    # not implimented on all hypervisors
+                    # not implemented on all hypervisors
                     begin
                         reply[:node_free_memory] = conn.node_free_memory
                     rescue
-                        reply[:node_free_memory] = 0
+                        reply[:node_free_memory] = -1
                     end
 
                     reply[:active_domains] = []
-                    conn.list_domains.each do |domain|
-                        reply[:active_domains] << conn.lookup_domain_by_id(domain).name
+                    conn.list_domains.each do |id|
+                        domain = conn.lookup_domain_by_id(id)
+                        reply[:active_domains] << domain.name
+
+                        domain.free
                     end
                     reply[:active_domains].sort!
 
                     reply[:inactive_domains] = conn.list_defined_domains.sort
                 rescue Exception => e
-                    reply.fail! "Could not load hvm info: %s: %s" % [request[:domain], e]
+                    reply.fail! "Could not load hvm info: #{e}"
                 ensure
-                    nodeinfo = nil
                     close(conn)
                 end
             end
@@ -69,9 +71,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 ensure
-                    domain = nil
-                    info = nil
-
+                    domain.free if domain
                     close(conn)
                 end
             end
@@ -89,7 +89,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 ensure
-                    domain = nil
+                    domain.free if domain
 
                     close(conn)
                 end
@@ -117,7 +117,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not define domain %s: %s" % [request[:domain], e]
                 ensure
-                    domain = nil
+                    domain.free if domain
 
                     close(conn)
                 end
@@ -146,8 +146,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not undefine domain %s: %s" % [request[:domain], e]
                 ensure
-                    domain = nil
-
+                    domain.free if domain
                     close(conn)
                 end
             end
@@ -176,16 +175,16 @@ module MCollective
 
             def close(conn)
                 if conn && !conn.closed?
-                    # http://web.archiveorange.com/archive/v/8XiUWgenYUvT8J107dnM
-                    GC.start
                     conn.close
                 end
             end
 
             def domains(conn)
                 domains = []
-                conn.list_domains.each do |domain|
-                    domains << conn.lookup_domain_by_id(domain).name
+                conn.list_domains.each do |id|
+                    domain = conn.lookup_domain_by_id(id)
+                    domains << domin.name
+                    domain.free
                 end
 
                 domains << conn.list_defined_domains
@@ -220,7 +219,7 @@ module MCollective
                 rescue Exception => e
                     reply.fail! "Could not #{action} domain %s : %s" % [request[:domain], e]
                 ensure
-                    domain = nil
+                    domain.free if domain
                     close(conn)
                 end
             end
