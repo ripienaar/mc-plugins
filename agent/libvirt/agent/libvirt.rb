@@ -21,7 +21,9 @@ module MCollective
                         reply[i] = nodeinfo.send(i)
                     end
 
-                    [:type, :version, :uri, :max_vcpus].each do |i|
+                    [:type, :version, :uri, :max_vcpus, :num_of_defined_domains, :num_of_defined_interfaces, :num_of_defined_networks,
+                     :num_of_defined_storage_pools, :num_of_domains, :num_of_interfaces, :num_of_networks, :num_of_nodedevices,
+                     :num_of_nwfilters, :num_of_secrets, :num_of_storage_pools].each do |i|
                         reply[i] = conn.send(i)
                     end
 
@@ -68,6 +70,11 @@ module MCollective
                     reply[:state] = info.state
                     reply[:state_description] = virtstates[info.state]
                     reply[:uuid] = domain.uuid
+                    reply[:has_current_snapshot] = domain.has_current_snapshot?
+                    reply[:has_managed_save] = domain.has_managed_save?
+                    reply[:snapshots] = domain.list_snapshots
+                    reply[:num_of_snapshots] = domain.num_of_snapshots
+                    reply[:persistent] = domain.persistent?
                 rescue Exception => e
                     reply.fail! "Could not load domain %s: %s" % [request[:domain], e]
                 ensure

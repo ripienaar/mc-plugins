@@ -17,35 +17,52 @@ Hypervisor / Domain Information:
 % mco virt info
 
 kvm1.xx.net
-   Inactive Domains: []
-               Type: QEMU
-            Sockets: 1
-          Max VCPUs: 16
-              Cores: 2
-              Model: x86_64
-                URI: qemu:///system
-            Version: 12001
-             Memory: 8063656
-         Numa Nodes: 1
-        Free Memory: 2292154368
-               CPUs: 2
-     Active Domains: ["dev2_devco", "dev3_devco", "dev4_devco", "dev5_devco"]
-                MHz: 1297
-            Threads: 1
+                Max VCPUs: 16
+                  Secrets: 0
+                     Type: QEMU
+                  Version: 12001
+           Active Domains: ["dev2_devco", "dev3_devco", "dev4_devco", "dev5_devco"]
+                      MHz: 1297
+          Active Networks: 1
+         Inactive Domains: 0
+         Inactive Domains: []
+   Inactive Storage Pools: 0
+                  Sockets: 1
+           Active Domains: 4
+     Active Storage Pools: 1
+                    Cores: 2
+                    Model: x86_64
+      Inactive Interfaces: 0
+               Numa Nodes: 1
+                      URI: qemu:///system
+             Node Devices: 49
+        Active Interfaces: 2
+                   Memory: 8063656
+          Network Filters: 15
+              Free Memory: 3993661440
+                     CPUs: 2
+        Inactive Networks: 0
+                  Threads: 1
 </pre>
 
 <pre>
 % mco virt info dev2_devco
 
 kvm1.xx.net
-        State: 1
-   Max Memory: 524288
-       Memory: 524288
-     CPU Time: 35180000000
-        State: Running
-         UUID: ca74dc32-0f09-7265-b67e-151b4fb5dd90
-    Autostart: false
-        VCPUs: 1
+                  UUID: ca74dc32-0f09-7265-b67e-151b4fb5dd90
+            State Code: 1
+             Autostart: false
+               OS Type: 0
+                 VCPUs: 1
+             Snapshots: []
+            Max Memory: 524288
+            Persistent: true
+   Number of Snapshots: 0
+              CPU Time: 5594920000000
+                Memory: 524288
+      Current Snapshot: false
+                 State: Running
+          Managed Save: false
 </pre>
 
 Manage a Domain:
@@ -119,7 +136,6 @@ Searches for a domain based on a ruby pattern:
 Todo?
 ====
 
- * Expose more hypervisor information like device lists, network lists, storage lists etc
  * More stats so that full feature auto provisioning can be built
 
 Contact?

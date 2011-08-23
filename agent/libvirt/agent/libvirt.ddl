@@ -68,6 +68,50 @@ action "hvinfo", :description => "Hypervisor Information" do
     output :max_vcpus,
            :description => "Maximum virtual CPUs",
            :display_as => "Max VCPUs"
+
+    output :num_of_defined_domains,
+           :description => "Number of inactive domains",
+           :display_as => "Inactive Domains"
+
+    output :num_of_domains,
+           :description => "Number of active domains",
+           :display_as => "Active Domains"
+
+    output :num_of_defined_interfaces,
+           :description => "Number of inactive interfaces",
+           :display_as => "Inactive Interfaces"
+
+    output :num_of_interfaces,
+           :description => "Number of active interfaces",
+           :display_as => "Active Interfaces"
+
+    output :num_of_defined_networks,
+           :description => "Number of inactive networks",
+           :display_as => "Inactive Networks"
+
+    output :num_of_networks,
+           :description => "Number of active networks",
+           :display_as => "Active Networks"
+
+    output :num_of_defined_storage_pools,
+           :description => "Number of inactive storage pools",
+           :display_as => "Inactive Storage Pools"
+
+    output :num_of_storage_pools,
+           :description => "Active storage pools",
+           :display_as => "Active Storage Pools"
+
+    output :num_of_nodedevices,
+           :description => "Number of active node devices",
+           :display_as => "Node Devices"
+
+    output :num_of_nwfilters,
+           :description => "Number of network filters",
+           :display_as => "Network Filters"
+
+    output :num_of_secrets,
+           :description => "Number of secrets",
+           :display_as => "Secrets"
 end
 
 action "domaininfo", :description => "Domain Information" do
@@ -80,6 +124,26 @@ action "domaininfo", :description => "Domain Information" do
         :validation  => '^.+$',
         :optional    => false,
         :maxlength   => 50
+
+    output :persistent,
+           :description => "Is the domain Persistent",
+           :display_as => "Persistent"
+
+    output :snapshots,
+           :description => "List of current snapshots",
+           :display_as => "Snapshots"
+
+    output :num_of_snapshots,
+           :description => "Number of snapshots",
+           :display_as => "Number of Snapshots"
+
+    output :has_current_snapshot,
+           :description => "Does the domain have a current snapshot",
+           :display_as => "Current Snapshot"
+
+    output :has_managed_save,
+           :description => "Does the domain have a managed save",
+           :display_as => "Managed Save"
 
     output :autostart,
            :description => "Will the domain auto start",
