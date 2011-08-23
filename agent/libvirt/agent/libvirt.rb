@@ -183,7 +183,7 @@ module MCollective
                 domains = []
                 conn.list_domains.each do |id|
                     domain = conn.lookup_domain_by_id(id)
-                    domains << domin.name
+                    domains << domain.name
                     domain.free
                 end
 
