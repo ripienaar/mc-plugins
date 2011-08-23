@@ -5,7 +5,7 @@ class MCollective::Application::Virt<MCollective::Application
     usage "Usage: mco virt info <domain>"
     usage "Usage: mco virt xml <domain>"
     usage "Usage: mco virt find <pattern>"
-    usage "Usage: mco virt [stop|start|suspend|resume|destroy] <domain>"
+    usage "Usage: mco virt [stop|start|reboot|suspend|resume|destroy] <domain>"
     usage "Usage: mco virt domains"
     usage "Usage: mco virt define <domain> <remote xml file> [permanent]"
     usage "Usage: mco virt undefine <domain> [destroy]"
@@ -70,6 +70,10 @@ class MCollective::Application::Virt<MCollective::Application
         end
 
         puts
+    end
+
+    def reboot_command
+        printrpc virtclient.reboot(:domain => configuration[:domain])
     end
 
     def start_command

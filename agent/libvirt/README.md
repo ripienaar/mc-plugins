@@ -79,7 +79,8 @@ kvm1.xx.net
 Other available actions are:
 
  * start
- * stop
+ * stop (needs acpid in the domain)
+ * reboot (needs acpid in the domain)
  * suspend
  * resume
  * destroy

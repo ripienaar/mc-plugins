@@ -158,7 +158,7 @@ module MCollective
                 end
             end
 
-            [:destroy, :shutdown, :suspend, :resume, :create].each do |act|
+            [:destroy, :shutdown, :suspend, :resume, :create, :reboot].each do |act|
                 action act do
                     validate :domain, String
 

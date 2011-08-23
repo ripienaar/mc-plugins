@@ -240,7 +240,7 @@ action "undefinedomain", :description => "Undefines a domain" do
            :display_as => "Status"
 end
 
-[:destroy, :shutdown, :suspend, :resume, :create, :start].each do |act|
+[:destroy, :shutdown, :suspend, :resume, :create, :start, :reboot].each do |act|
     action act.to_s, :description => "#{act.to_s.capitalize} a domain" do
         display :ok
 
