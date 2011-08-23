@@ -21,17 +21,19 @@ module MCollective
                         reply[i] = nodeinfo.send(i)
                     end
 
-                    [:type, :version, :uri, :max_vcpus, :num_of_defined_domains, :num_of_defined_interfaces, :num_of_defined_networks,
-                     :num_of_defined_storage_pools, :num_of_domains, :num_of_interfaces, :num_of_networks, :num_of_nodedevices,
-                     :num_of_nwfilters, :num_of_secrets, :num_of_storage_pools].each do |i|
+                    [:type, :version, :uri, :max_vcpus].each do |i|
                         reply[i] = conn.send(i)
                     end
 
                     # not implemented on all hypervisors
-                    begin
-                        reply[:node_free_memory] = conn.node_free_memory
-                    rescue
-                        reply[:node_free_memory] = -1
+                    [:num_of_defined_domains, :num_of_defined_interfaces, :num_of_defined_networks, :num_of_defined_storage_pools,
+                     :num_of_domains, :num_of_interfaces, :num_of_networks, :num_of_nodedevices, :num_of_nwfilters, :num_of_secrets,
+                     :num_of_storage_pools].each do |i|
+                        begin
+                            reply[i] = conn.send(i)
+                        rescue
+                            reply[i] = -1
+                        end
                     end
 
                     reply[:active_domains] = []
