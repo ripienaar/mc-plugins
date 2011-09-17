@@ -8,25 +8,6 @@ module MCollective
         # enhancements to the Stomp protocol.  For best results in a clustered environment
         # use ActiveMQ 5.5.0 at least.
         #
-        # This plugin takes an entirely different approach to dealing with ActiveMQ
-        # from the more generic stomp connector.
-        #
-        #  - Agents use /topic/<collective>.<agent>.agent
-        #  - Replies use temp-topics so they are private and transient.
-        #  - Point to Point messages using topics are supported by subscribing to
-        #    /topic/<collective>.nodes with a selector "mc_identity = 'identity'
-        #
-        # The use of temp-topics for the replies is a huge improvement over the old style.
-        # In the old way all clients got replies for all clients that were active at that
-        # time, this would mean that they would need to decrypt, validate etc in order to
-        # determine if they need to ignore the message, this was computationally expensive
-        # and on large busy networks the messages were being sent all over the show cross
-        # broker boundaries.
-        #
-        # The new way means the messages go point2point back to only whoever requested the
-        # message, they only get their own replies and this is ap private channel that
-        # casual observers cannot just snoop into.
-        #
         # This plugin supports 1.1.6 and newer of the Stomp rubygem
         #
         #    connector = activemq
@@ -45,7 +26,7 @@ module MCollective
         #    plugin.activemq.pool.2.ssl = false
         #
         # Using this method you can supply just STOMP_USER and STOMP_PASSWORD.  The port will
-        # default to 61613 if not specified.
+        # default to 6163 if not specified.
         #
         # In addition you can set the following options for the rubygem:
         #
