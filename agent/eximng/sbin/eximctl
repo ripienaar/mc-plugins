@@ -1,0 +1,239 @@
+#!/usr/bin/ruby
+
+require 'mcollective'
+require 'rdialog'
+require 'tempfile'
+
+include MCollective::RPC
+
+class CancelPressed < RuntimeError; end
+class InvalidAddress < RuntimeError; end
+
+class EximUI
+    def initialize(exim)
+        @exim = exim
+        @dialog = RDialog.new
+        @dialog.backtitle = "Exim Collective"
+        @dialog.itemhelp = true
+
+        @tools = Array.new
+        @tools << ["1", "Show mail queue", "mailq"]
+        @tools << ["2", "Show mail queue summary", "summary"]
+        @tools << ["3", "Show current exim activity", "exiwhat"]
+        @tools << ["4", "Test an address", "test"]
+        @tools << ["5", "Retry mail delivery", "retry"]
+        @tools << ["6", "Add a recipient", "addrecipient"]
+        @tools << ["7", "Edit the sender of a message", "setsender"]
+        @tools << ["8", "Mark all recipients as delivered", "markalldelivered"]
+        @tools << ["9", "Mark a recipient as delivered", "markrecipdelivered"]
+        @tools << ["0", "Freeze message", "freeze"]
+        @tools << ["a", "UnFreeze message", "thaw"]
+        @tools << ["b", "Give up on a message (with bounce message)", "giveup"]
+        @tools << ["c", "Removes a message", "rm"]
+        @tools << ["d", "Remove all postmaster originated message", "rmbounces"]
+        @tools << ["e", "Remove all frozen message", "rmfrozen"]
+        @tools << ["f", "Do a normal queue run", "runq"]
+        @tools << ["g", "Deliver all messages matching a string", "delivermatching"]
+        @tools << ["h", "Re-discover agents", "discover"]
+        @tools << ["x", "Exit", "quit"]
+    end
+
+    def quit_command(title)
+        exit
+    end
+
+    # Does a discovery
+    def discover_command(title)
+        infobox("Doing discovery", title)
+        @exim.mc.reset
+        found = @exim.mc.discover
+        textbox("Found exim agents on the following hosts:\n\n" + found.join("\n"), "Discovered Hosts")
+    end
+
+    def test_command(title)
+        address = ask("Email address to test:", title)
+        textbox(@exim.test(:address => address), title)
+    end
+
+    def retry_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.retry(:message_id => msgid), title)
+        end
+    end
+
+    def addrecipient_command(title)
+        act_on_msgid(title) do |msgid|
+            recipient = ask("Recipient:", title)
+            textbox(@exim.addrecipient(:message_id => msgid, :recipient => recipient), title)
+        end
+    end
+
+    def setsender_command(title)
+        act_on_msgid(title) do |msgid|
+            sender = ask("Sender:", title)
+            textbox(@exim.setsender(:message_id => msgid, :sender => sender), title)
+        end
+    end
+
+    def markalldelivered_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.markdelivered(:message_id => msgid), title)
+        end
+    end
+
+    def freeze_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.freeze(:message_id => msgid), title)
+        end
+    end
+
+    def thaw_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.thaw(:message_id => msgid), title)
+        end
+    end
+
+    def markrecipdelivered_command(title)
+        act_on_msgid(title) do |msgid|
+            recipient = ask("Recipient:", title)
+            textbox(@exim.markdelivered(:message_id => msgid, :recipient => recipient), title)
+        end
+    end
+
+    def giveup_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.giveup(:message_id => msgid), title)
+        end
+    end
+
+    def rm_command(title)
+        act_on_msgid(title) do |msgid|
+            textbox(@exim.rm(:message_id => msgid), title)
+        end
+    end
+
+    def delivermatching_command(title)
+        pattern = ask("Pattern:", title)
+        textbox(@exim.runq(:pattern => pattern), title)
+    end
+
+    def run
+        discover_command("Discovering agents")
+
+        while (result = menu(@tools)) do
+            begin
+                tool = gettool(result, @tools)
+
+                cmd = "#{tool[1]}_command"
+
+                if respond_to?(cmd)
+                    send(cmd, tool[0])
+                elsif @exim.respond_to?(tool[1])
+                    textbox(@exim.send(tool[1], {}), tool[0])
+                else
+                    textbox("Support for #{tool[1]} has not yet been implimented", "Error")
+                end
+            rescue InvalidAddress => e
+                textbox("Invalid email address entered", "Error")
+            rescue CancelPressed => e
+                # go back to the menu if cancel is pressed
+            rescue SystemExit
+                exit
+            rescue Exception => e
+                textbox("Unhandled exception: \n #{e.class}: #{e}\n" + e.backtrace.join("\n    "), "Error")
+            end
+        end
+    rescue CancelPressed
+    end
+
+    def act_on_msgid(title, &blk)
+        if choice = choosemsg(title)
+            yield(choice)
+        else
+            @dialog.msgbox("The mail queue is empty, nothing to operate on")
+        end
+    end
+
+    # Choose a message from a list of the current mailq, returns the msgid
+    def choosemsg(title)
+        choices = []
+
+        @exim.mc.mailq do |r, s|
+            s[:data][:mailq].each do |message|
+                recipients = message[:recipients].join(' ')[0,30]
+                frozen = "*** frozen *** " if message[:frozen]
+                choices << [message[:msgid], "From: #{message[:sender]} To: #{recipients} #{frozen}"]
+            end
+        end
+
+        msgid = choose(choices, title)
+    end
+
+    # wrappers to save typing
+    def choose(items, title)
+        @dialog.title = "\"#{title}\""
+        res = @dialog.menu(title, items)
+
+        raise CancelPressed unless res
+
+        res
+    end
+
+    # Show the string in a dialog box with a specified title
+    def textbox(msg, title)
+        Tempfile.open("exim") do |tmp|
+            tmp.write("\n" + msg.to_s)
+            tmp.close
+
+            title.sub!(/"/, "\\\"")
+
+            @dialog.title = "\"#{title}\""
+            @dialog.textbox(tmp.path)
+        end
+    end
+
+    # Displays some text while you do something in the background
+    def infobox(msg, title, height = 5, width = 40)
+        @dialog.title = "\"#{title}\""
+        @dialog.infobox("\n" + msg, height, width)
+    end
+
+    # Presents the list of tools in a menu
+    def menu(tools)
+        items = Array.new
+
+        tools.each do |t|
+            items << [ t[0], t[1] ]
+        end
+
+        selected = choose(items, "Choose an operation")
+    end
+
+    # Ask the user for something, return the entered text
+    def ask(what, title)
+        @dialog.title = "\"#{title}\""
+
+        res = @dialog.inputbox(what)
+
+        raise CancelPressed.new unless res
+
+        res
+    end
+
+    def gettool(choice, tools)
+        tools.each do |t|
+            return [t[1], t[2]] if t[0] == choice
+        end
+
+        return nil
+    end
+end
+
+mc = rpcclient("eximng")
+mc.progress = false
+
+MCollective::Util.loadclass("MCollective::Util::EximNG")
+exim = MCollective::Util::EximNG.new(mc)
+eximui = EximUI.new(exim)
+
+eximui.run

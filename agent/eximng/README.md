@@ -10,9 +10,11 @@ entire spool with 10s of thousands of mails on it but you now have the ability t
 dig into the spool using the usual _exigrep_ features.  The filters are done server
 side so should be much more efficient than before.
 
-At present there isn't a new dialog interface like the old dialog interface but we
-hope to recreate that feature based on this agent soon.  We've though created a capable
-CLI application that makes using this agent quite easy.
+A new Dialog interface was written that provides a lot of the same functionality
+minux some of the finer grained matching options.  The Dialog interface is particularly
+good for commands like retry, rm, giveup etc where you need to operate on a message id
+as it will give you a convenient chooser to pick messages to operate on.  It requires
+the _rdialog_ gem to be installed
 
 Usage?
 ======
@@ -23,12 +25,14 @@ The included application plugin does most of what is needed in general use:
 
     MCollective Exim Manager
 
-    Usage: Usage: mco exim [mailq|size|summary|exiwhat|rmbounces|rmfrozen|runq]
-    Usage: Usage: mco exim runq <pattern>
-    Usage: Usage: mco exim [retry|markdelivered|freeze|thaw|giveup|rm] <message id>
-    Usage: Usage: mco exim [addrecipient|markdelivered] <message id> <recipient>
-    Usage: Usage: mco exim setsender <message id> <sender>
-    Usage: Usage: mco exim <message matchers> [mailq|size]
+    Usage: mco exim [mailq|size|summary|exiwhat|rmbounces|rmfrozen|runq]
+    Usage: mco exim runq <pattern>
+    Usage: mco exim [retry|markdelivered|freeze|thaw|giveup|rm] <message id>
+    Usage: mco exim [addrecipient|markdelivered] <message id> <recipient>
+    Usage: mco exim setsender <message id> <sender>
+    Usage: mco exim <message matchers> [mailq|size]
+    Usage: mco exim test <address>
+    Usage: mco exim exigrep pattern
 
       --match-sender, --limit-sender SENDER               Match sender pattern
       --match-recipient, --limit-recipient RECIPIENT      Match recipient pattern
@@ -204,4 +208,18 @@ on your servers, just like when you use exigrep on the CLI.
                   2011-09-23 22:44:31 1R7DXr-0006vV-Pa <= <> R=1R5kqf-0006ro-TT U=exim P=local S=6323 T="Mail delivery failed: returning message to sender"
                   2011-09-24 07:41:17 1R7DXr-0006vV-Pa == foo.org.uk.606774.david@host117.enginereliable.com R=dnslookup T=remote_smtp defer (-18): Remote host host117.enginereliable.com [205.204.86.119] closed connection in response to end of data
                   2011-09-24 11:32:28 1R7DXr-0006vV-Pa == foo.org.uk.606774.david@host117.enginereliable.com R=dnslookup T=remote_smtp defer (-53): retry time not reached for any host
+
+
+You can quickly verify how your servers will route mail to a specific address:
+
+    % mco exim test foo@gmail.com
+
+    mx1.your.net
+       Route: foo@gmail.com
+                router = dnslookup, transport = remote_smtp
+                host gmail-smtp-in.l.google.com      [74.125.91.27]  MX=5
+                host alt1.gmail-smtp-in.l.google.com [209.85.143.27] MX=10
+                host alt2.gmail-smtp-in.l.google.com [209.85.227.27] MX=20
+                host alt3.gmail-smtp-in.l.google.com [74.125.79.26]  MX=30
+                host alt4.gmail-smtp-in.l.google.com [74.125.39.26]  MX=40
 
