@@ -2,12 +2,18 @@ metadata    :name        => "libvirt",
             :description => "SimpleRPC Libvirt Agent",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL2.0",
-            :version     => "0.1",
+            :version     => "0.2",
             :url         => "http://devco.net/",
             :timeout     => 10
 
 action "hvinfo", :description => "Hypervisor Information" do
     display :always
+
+    input :facts,
+        :prompt      => "Include Facts?",
+        :description => "Also include Facter in the reply",
+        :type        => :boolean,
+        :optional    => true
 
     output :model,
            :description => "Hypervisor Model",
@@ -112,6 +118,10 @@ action "hvinfo", :description => "Hypervisor Information" do
     output :num_of_secrets,
            :description => "Number of secrets",
            :display_as => "Secrets"
+
+    output :facts,
+           :description => "Facts about this machine",
+           :display_as  => "Facts"
 end
 
 action "domaininfo", :description => "Domain Information" do
@@ -204,6 +214,22 @@ action "definedomain", :description => "Defines a domain from a XML file describ
         :validation  => '^.+$',
         :optional    => false,
         :maxlength   => 50
+
+    input :xmlfile,
+        :prompt      => "XML File",
+        :description => "Libvirt XML file",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => true,
+        :maxlength   => 200
+
+    input :xml,
+        :prompt      => "XML Definition",
+        :description => "Libvirt XML",
+        :type        => :string,
+        :validation  => '^.+$',
+        :optional    => true,
+        :maxlength   => 0
 
     input :permanent,
         :prompt      => "Permanent",

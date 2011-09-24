@@ -7,7 +7,7 @@ class MCollective::Application::Virt<MCollective::Application
     usage "Usage: mco virt find <pattern>"
     usage "Usage: mco virt [stop|start|reboot|suspend|resume|destroy] <domain>"
     usage "Usage: mco virt domains"
-    usage "Usage: mco virt define <domain> <remote xml file> [permanent]"
+    usage "Usage: mco virt define <domain> <local or remote xml file> [permanent]"
     usage "Usage: mco virt undefine <domain> [destroy]"
 
     def post_option_parser(configuration)
@@ -36,10 +36,15 @@ class MCollective::Application::Virt<MCollective::Application
         configuration[:xmlfile] = ARGV.shift if ARGV.size > 0
         configuration[:perm] = ARGV.shift if ARGV.size > 0
 
-        raise "Need a path to a remote XML file to define an instance" unless configuration[:xmlfile]
+        raise "Need a XML file to define an instance" unless configuration[:xmlfile]
 
         args = {}
-        args[:xmlfile] = configuration[:xmlfile]
+        if File.exist?(configuration[:xmlfile])
+            args[:xml] = File.read(configuration[:xmlfile])
+        else
+            args[:xmlfile] = configuration[:xmlfile]
+        end
+
         args[:permanent] = true if configuration[:perm].to_s =~ /^perm/
         args[:domain] = configuration[:domain]
 

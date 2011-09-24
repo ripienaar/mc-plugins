@@ -7,7 +7,7 @@ module MCollective
                         :description => "SimpleRPC Libvirt Agent",
                         :author      => "R.I.Pienaar <rip@devco.net>",
                         :license     => "ASL2.0",
-                        :version     => "0.1",
+                        :version     => "0.2",
                         :url         => "http://devco.net/",
                         :timeout     => 10
 
@@ -46,6 +46,8 @@ module MCollective
                     reply[:active_domains].sort!
 
                     reply[:inactive_domains] = conn.list_defined_domains.sort
+
+                    reply[:facts] = PluginManager["facts_plugin"].get_facts if request[:facts]
                 rescue Exception => e
                     reply.fail! "Could not load hvm info: #{e}"
                 ensure
@@ -110,14 +112,23 @@ module MCollective
             end
 
             action "definedomain" do
-                validate :xmlfile, String
+                validate :xmlfile, String if request.include?[:xmlfile]
+                validate :xml, String if request.include?[:xml]
                 validate :domain, String
 
                 reply.fail!("Can't find XML file defining instance") unless File.exist?(request[:xmlfile])
 
                 begin
                     conn = connect
-                    xml = File.read(request[:xmlfile])
+
+                    if request[:xmlfile]
+                        xml = File.read(request[:xmlfile])
+                    elsif request[:xml]
+                        xml = File.read(request[:xml])
+                    else
+                        reply.fail!("Need either xmlfile or xml parameters to define a domain")
+                    end
+
 
                     if request[:permanent]
                         conn.define_domain_xml(xml)
