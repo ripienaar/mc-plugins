@@ -6,8 +6,9 @@ class MCollective::Application::Exim<MCollective::Application
     usage "Usage: mco exim [addrecipient|markdelivered] <message id> <recipient>"
     usage "Usage: mco exim setsender <message id> <sender>"
     usage "Usage: mco exim <message matchers> [mailq|size]"
+    usage "Usage: mco exim exigrep pattern"
 
-    VALID_COMMANDS = ["mailq", "size", "summary", "exiwhat", "rmbounces", "rmfrozen", "runq", "addrecipient", "markdelivered", "setsender", "retry", "markdelivered", "freeze", "thaw", "giveup", "rm", "delivermatching"]
+    VALID_COMMANDS = ["mailq", "size", "summary", "exiwhat", "rmbounces", "rmfrozen", "runq", "addrecipient", "markdelivered", "setsender", "retry", "markdelivered", "freeze", "thaw", "giveup", "rm", "delivermatching", "exigrep"]
     MSGID_REQ_COMMANDS = ["setsender", "retry", "markdelivered", "freeze", "thaw", "giveup", "rm"]
     RECIP_OPT_COMMANDS = ["markdelivered"]
     RECIP_REQ_COMMANDS = ["addrecipient"]
@@ -24,7 +25,7 @@ class MCollective::Application::Exim<MCollective::Application
 
     option :limit_younger_than,
         :description    => "Match younger than seconds",
-        :arguments      => ["--match-younger SECONDS", "-limit-younger"],
+        :arguments      => ["--match-younger SECONDS", "--limit-younger"],
         :required       => false
 
     option :limit_older_than,
@@ -96,7 +97,7 @@ class MCollective::Application::Exim<MCollective::Application
 
     def std_recipient_action(mc, action, msgid, recipient)
         if recipient
-            results = mc.send(action, :msgid => msgid, :recipient => :recipient)
+            results = mc.send(action, :msgid => msgid, :recipient => recipient)
         else
             results = mc.send(action, :msgid => msgid)
         end
@@ -251,9 +252,19 @@ class MCollective::Application::Exim<MCollective::Application
         end
     end
 
+    def exigrep_command(mc)
+        if ARGV.empty?
+            raise("The exigrep command requires a pattern")
+        else
+            pattern = ARGV.first
+        end
+
+        printrpc mc.exigrep(:pattern => pattern)
+    end
+
     def runq_command(mc)
         if ARGV.empty?
-            result = mc.runq.each
+            result = mc.runq
         else
             pattern = ARGV.first
             result = mc.delivermatching(:pattern => pattern)
