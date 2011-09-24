@@ -136,16 +136,16 @@ Removes a message without creating a non delivery report:
 
      % mco exim rm 1R6TJa-0000fA-5Z
 
-Edit the sender of a message:
-
-     % mco exim setsender 1R6TJa-0000fA-5Z foo@example.com
-
 Add a recipient to a message:
 
      % mco exim addrecipient 1R6TJa-0000fA-5Z foo@example.com
 
        mx1.your.net: foo@example.com has been added to message 1R6TJa-0000fA-5Z
        mx2.your.net: No message matching 1R6TJa-0000fA-5Z
+
+Edit the sender of a message:
+
+     % mco exim setsender 1R6TJa-0000fA-5Z foo@example.com
 
 Remove all frozen mail from the queue:
 
@@ -171,9 +171,9 @@ Do a queue run for messages matching example.com:
 
      % mco exim runq example.com
 
-       mx1.your.net: Delivery for pattern devco.net has been scheduled
-       mx2.your.net: Delivery for pattern devco.net has been scheduled
-       mx3.your.net: Delivery for pattern devco.net has been scheduled
+       mx1.your.net: Delivery for pattern example.com has been scheduled
+       mx2.your.net: Delivery for pattern example.com has been scheduled
+       mx3.your.net: Delivery for pattern example.com has been scheduled
 
 Server Activity
 ---------------
