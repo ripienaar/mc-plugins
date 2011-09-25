@@ -16,6 +16,10 @@ good for commands like retry, rm, giveup etc where you need to operate on a mess
 as it will give you a convenient chooser to pick messages to operate on.  It requires
 the _rdialog_ gem to be installed
 
+I am toying with a web interface but it's still a work in progress.  Some of this code
+is not particularly DRY I will refactor once I have the worklow/approach of the web
+app down 100% and will then look at common points
+
 Usage?
 ======
 
