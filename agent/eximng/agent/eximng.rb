@@ -314,6 +314,8 @@ module MCollective
                 messages = []
                 msg = nil
 
+                output << "\n"
+
                 output.each do |line|
                     line.chomp!
 

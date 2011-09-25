@@ -1,0 +1,71 @@
+<%
+   @action_ddl = @ddl.action_interface(@action)
+   @ok_count = 0
+   @error_count = 0
+   @results.each do |r|
+       @ok_count += 1 if r[:statuscode] == 0
+       @error_count += 1 if r[:statuscode] > 0
+   end
+%>
+
+<% if @error_count > 0 && @ok_count == 0 %>
+    <div class="alert-message error">
+<% elsif @error_count > 0 && @ok_count > 0 %>
+    <div class="alert-message warning">
+<% elsif @error_count == 0 && @ok_count == 0 %>
+    <div class="alert-message error">
+<% else %>
+    <div class="alert-message success">
+<% end %>
+<p><strong><%= @ok_count %></strong> successful and <strong><%= @error_count %></strong> failed responses</p>
+</div>
+
+<% if @ok_count > 0 %>
+    <h6>Successful Responses</h6>
+    <table class="zebra-striped">
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <% @action_ddl[:output].keys.sort.each do |field| %>
+                    <th><%= @action_ddl[:output][field][:display_as] %></th>
+                <% end %>
+            </tr>
+        </thead>
+        <tbody>
+    <% @results.select{|r| r[:statuscode] == 0}.each do |result| %>
+        <tr>
+            <td><%= result[:sender] %></td>
+            <% @action_ddl[:output].keys.sort.each do |field| %>
+                <td>
+                    <%= display_result result[:data][field] %>
+                </td>
+            <% end %>
+        </tr>
+    <% end %>
+        </tbody>
+    </table>
+<% end %>
+
+<% if @error_count > 0 %>
+    <h6>Failed Responses</h6>
+    <table class="zebra-striped">
+        <thead>
+            <tr>
+                <th>Sender</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+        <tbody>
+    <% @results.select{|r| r[:statuscode] > 0}.each do |err| %>
+        <tr>
+            <td><%= label_for_code err[:statuscode] %>&nbsp;<%= err[:sender] %></td>
+            <td><%= err[:statusmsg] %></td>
+        </tr>
+    <% end %>
+        </tbody>
+    </table>
+<% end %>
+
+<% unless request.referer == "/" %>
+    <a href="<%= request.referer %>" class="btn large primary">Back</a>
+<% end %>

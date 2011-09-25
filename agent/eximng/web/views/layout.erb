@@ -1,0 +1,78 @@
+<html>
+    <head>
+        <link href="/bootstrap.css" rel="stylesheet">
+        <script src="http://code.jquery.com/jquery-1.5.2.min.js"></script>
+        <script src="http://autobahn.tablesorter.com/jquery.tablesorter.min.js"></script>
+        <script src="/js/bootstrap-scrollspy.js"></script>
+        <script src="/js/bootstrap-dropdown.js"></script>
+        <script >
+            $(function() {
+            $("table#sortedTable").tablesorter({ sortList: [[0,0]] });
+            });
+        </script>
+    </head>
+    <body style="padding-top: 80px;">
+        <div class="topbar-wrapper" style="z-index: 5;">
+            <div class="topbar" data-dropdown="dropdown" >
+                <div class="topbar-inner">
+                    <div class="container">
+                        <h3><a href="#">Exim Collective</a></h3>
+                        <ul class="nav">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Summaries</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/size">Queue Size</a></li>
+                                    <li><a href="#">Queue Summary</a></li>
+                                    <li><a href="/exiwhat">Process Activity</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Mail Queue</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#">Sender Filtered</a></li>
+                                    <li><a href="#">Recipient Filtered</a></li>
+                                    <li><a href="#">Frozen Filtered</a></li>
+                                    <li class="divider"></li>
+                                    <li><a href="/mailq">All Mail</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Delete Mail</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="/mailq/delete/frozen">Frozen Mail</a></li>
+                                    <li><a href="/mailq/delete/bounces">Bounce Mail</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Retry Delivery</a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#">Filtered Queue Run</a></li>
+                                    <li><a href="/mailq/run">Normal Queue Run</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container-fluid">
+            <div class="sidebar">
+                <h6>Configured Servers</h6>
+                <dl>
+                <% @exim.client.discover.each do |host| %>
+                    <dd><%= host %></dd>
+                <% end %>
+                </dl>
+            </div>
+            <div class="content">
+                <% if @error %>
+                <div class="alert-message error">
+                    <%= @error %>
+                </div>
+                <% end %>
+                <%= yield %>
+            </div>
+        </div>
+    </body>
+</html>

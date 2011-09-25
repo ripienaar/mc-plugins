@@ -1,0 +1,35 @@
+    <table class="zebra-striped" id="sortedTable">
+    <thead>
+        <tr>
+            <th>Sender</th>
+            <th>Recipients</th>
+            <th>Age</th>
+            <th>Size</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    <% @mailq.each do |message| %>
+        <tr>
+            <td>
+                <% if message[:frozen] %>
+                    <span class="label important">Frozen</span>
+                <% end %>
+                <%= sanitize_email message[:sender] %>
+            </td>
+            <td><%= message[:recipients].map {|r| h r}.join("<br>") %></td>
+            <td><%= message[:age] %></td>
+            <td><%= message[:size] %></td>
+            <td>
+                <a class="btn" href="/mailq/retrymsg/<%= message[:msgid] %>">retry</a>
+                <% if message[:frozen] %>
+                    <a class="btn" href="/mailq/thaw/<%= message[:msgid] %>">thaw</a>
+                <% else %>
+                    <a class="btn" href="/mailq/freeze/<%= message[:msgid] %>">freeze</a>
+                <% end %>
+                <a class="btn danger" href="/mailq/delete/<%= message[:msgid] %>">delete</a>
+            </td>
+        </tr>
+    <% end %>
+    </tbody>
+    </table>
