@@ -5,7 +5,12 @@ class Exim
         @exim = rpcclient("eximng")
         @exim.instance_eval { undef :freeze }
         @exim.progress = false
-        @exim.discover :hosts => ["mw1-1.ma.pinetecltd.net", "mw1-2.ma.pinetecltd.net", "mw1-3.ma.pinetecltd.net", "mw2-1.ma.pinetecltd.net", "mw3-1.ma.pinetecltd.net", "mw3-2.ma.pinetecltd.net"]
+
+        if File.exist?("serverlist.yaml")
+            @exim.discover :hosts => YAML.parse_file("serverlist.yaml")
+        else
+            raise "A yaml file with server names is needed in serverlist.yaml"
+        end
     end
 
     def mailq
