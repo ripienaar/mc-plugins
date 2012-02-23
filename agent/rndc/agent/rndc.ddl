@@ -2,7 +2,7 @@ metadata    :name        => "rndc",
             :description => "SimpleRPC RNDC Agent",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL2.0",
-            :version     => "0.1",
+            :version     => "0.2",
             :url         => "http://www.devco.net/",
             :timeout     => 5
 
@@ -57,6 +57,16 @@ action "reconfig", :description => "Reloads the server configuration" do
 end
 
 action "querylog", :description => "Toggles the server wide querylog" do
+    output :out,
+           :description => "STDOUT output",
+           :display_as => "Output"
+
+    output :err,
+           :description => "STDERR output",
+           :display_as => "Error"
+end
+
+action "flush", :description => "Flushes all of the server's caches." do
     output :out,
            :description => "STDOUT output",
            :display_as => "Output"

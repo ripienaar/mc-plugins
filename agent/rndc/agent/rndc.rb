@@ -5,7 +5,7 @@ module MCollective
                         :description => "SimpleRPC RNDC Agent",
                         :author      => "R.I.Pienaar <rip@devco.net>",
                         :license     => "ASL2.0",
-                        :version     => "0.1",
+                        :version     => "0.2",
                         :url         => "http://www.devco.net/",
                         :timeout     => 5
 
@@ -25,7 +25,7 @@ module MCollective
                 end
             end
 
-            ["reconfig", "querylog"].each do |cmd|
+            ["reconfig", "querylog", "flush"].each do |cmd|
                 action cmd do
                     rndc(cmd)
                 end
