@@ -45,11 +45,11 @@ def ask(msg)
 end
 
 def get_updates_due(agent)
-  msg "Checking for updates on all servers"
-
   updates = {}
 
   agent.reset
+
+  msg "Checking for updates on #{agent.discover.size} servers"
 
   agent.checkupdates(:batch_size => 0) do |r, s|
     begin
@@ -64,6 +64,8 @@ def get_updates_due(agent)
           updates[name] ||= []
           updates[name] << s[:sender]
         end
+      else
+        msg "Found no updates for %s" % [ s[:sender] ]
       end
     rescue => e
       err("Failed to parse data: #{e}: #{r.pretty_inspect}")
@@ -80,6 +82,7 @@ def print_list(updates)
 
   puts
   puts "  r> Refresh updates list"
+  puts "  q> Quit"
 end
 
 def update_pkg(updates, selection, agent)
@@ -141,17 +144,21 @@ until updates_due.empty?
     puts
     print "Pick a package to update:  "
 
-    choice = STDIN.gets.chomp
+    choice = STDIN.gets.chomp.downcase
 
     if choice == "r"
       updates_due = get_updates_due(@agent)
       next
+    elsif choice == "q"
+      exit
     end
 
     pkg = Integer(choice)
     updates_due.delete(update_pkg(updates_due, pkg, @agent))
   rescue Interrupt
     exit
+  rescue SystemExit
+    raise
   rescue => e
     err "#{e.class}: #{e}"
     err e.backtrace.pretty_inspect
