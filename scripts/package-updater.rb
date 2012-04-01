@@ -133,7 +133,7 @@ if @agent.batch_size == 0
   exit unless ask("Are you sure you wish to continue without specifying a batch size using --batch?")
 end
 
-printrpc(@agent.yum_clean) if ask("Would you like to clear the yum cache everywhere?")
+printrpc(@agent.yum_clean(:batch_size => 0)) if ask("Would you like to clear the yum cache everywhere?")
 
 updates_due = get_updates_due(@agent)
 
