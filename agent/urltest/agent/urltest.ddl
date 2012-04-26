@@ -1,5 +1,5 @@
-metadata    :name        => "SimpleRPC URL Testing Agent",
-            :description => "Agent that connects to a URL and returns some statistics", 
+metadata    :name        => "URL Tester",
+            :description => "Agent that connects to a URL and returns some statistics",
             :author      => "R.I.Pienaar",
             :license     => "GPLv2",
             :version     => "1.2",
@@ -9,7 +9,7 @@ metadata    :name        => "SimpleRPC URL Testing Agent",
 action "perftest", :description => "Permform URL test" do
     display :always
 
-    input :url, 
+    input :url,
           :prompt      => "URL",
           :description => "The URL to test, only http is supported",
           :type        => :string,

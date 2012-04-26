@@ -23,18 +23,14 @@ end
 begin
     tester = rpcclient("urltest", :options => options)
 
-    tester.perftest(:url => url).each do |result|
+    results = tester.perftest(:url => url)
+
+    puts "%s      Tester Location DNS      Connect    Pre-xfer   Start-xfer Total      Bytes Fetched%s" % [ MCollective::RPC::Helpers.color(:bold), MCollective::RPC::Helpers.color(:reset) ]
+
+    results.sort_by{|r| r[:data][:totaltime] rescue 0}.each do |result|
         res = result[:data]
 
-        puts "Tester Node: #{res[:testerlocation]}"
-        puts "       Lookup Time: #{res[:lookuptime]}"
-        puts "      Connect Time: #{res[:connectime]}"
-        puts "     Pre-Xfer Time: #{res[:prexfertime]}"
-        puts "   Start-Xfer Time: #{res[:startxfer]}"
-        puts "        Total Time: #{res[:totaltime]}"
-        puts "     Bytes Fetched: #{res[:bytesfetched]}"
-        puts ""
-        puts ""
+        puts "%20s: %.4f   %.4f     %.4f     %.4f     %.4f     %d" % [ res[:testerlocation], res[:lookuptime], res[:connectime], res[:prexfertime], res[:startxfer], res[:totaltime], res[:bytesfetched]]
     end
 rescue Exception => e
     raise e
