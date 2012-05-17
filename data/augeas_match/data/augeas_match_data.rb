@@ -1,7 +1,7 @@
 module MCollective
   module Data
     class Augeas_match_data<Base
-      require 'augeas'
+      activate_when { require 'augeas' }
 
       query do |what|
         aug = Augeas.open
