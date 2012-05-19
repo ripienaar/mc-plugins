@@ -1,0 +1,26 @@
+topicprefix = /topic/
+collectives = <%= [collective, subcollectives].flatten.join(',') %>
+main_collective = <%= collective %>
+libdir = <%= memberdir %>/plugins
+logfile = <%= File.join(@logsdir, "#{identity}.log") %>
+loglevel = debug
+daemonize = 1
+identity = <%= identity %>
+
+# Plugins
+securityprovider = none
+
+direct_addressing = yes
+direct_addressing_threshold = 5
+
+connector = activemq
+plugin.activemq.pool.size = 1
+plugin.activemq.pool.1.host = <%= stompserver %>
+plugin.activemq.pool.1.port = <%= stompport %>
+plugin.activemq.pool.1.user = <%= stompuser %>
+plugin.activemq.pool.1.password = <%= stomppass %>
+
+factsource = yaml
+plugin.yaml = <%= memberdir %>/etc/facts.yaml
+
+classesfile = <%= memberdir %>/etc/classes.txt
