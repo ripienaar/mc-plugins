@@ -198,7 +198,7 @@ action "setsender", :description => "Sets the sender email address of a message"
            :display_as => "Status"
 end
 
-action "markdelivered", :description => "Retries a specific message" do
+action "markdelivered", :description => "Marks a specific message as delivered" do
     display :ok
 
     input :msgid,
