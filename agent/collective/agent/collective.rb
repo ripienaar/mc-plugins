@@ -5,11 +5,11 @@ module MCollective
                   :description => "Manage multiple mcollectived instances on a single node",
                   :author      => "R.I.Pienaar",
                   :license     => "ASL 2.0",
-                  :version     => "0.1",
+                  :version     => "0.6",
                   :url         => "http://devco.net/",
                   :timeout     => 60
 
-      action "destroy_members" do
+      action "destroy" do
         stop_all_members
 
         FileUtils.rm_rf @collectivedir
@@ -25,11 +25,11 @@ module MCollective
         membercount = Integer(request[:count] || 10)
         version = request[:version] || "master"
         collective = request[:collective] || "mcollectivedev"
-        subcollectives = request[:subcollective].split(",") rescue ["subdev1", "subdev2"]
-        server = request[:server] || @config.pluginconf["activemq.pool.1.host"]
-        port = request[:port] || @config.pluginconf["activemq.pool.1.port"]
+        subcollectives = request[:subcollective].split(",") rescue @config.collectives.reject{|c| c == collective}
+        server = request[:server].split(",") || [@config.pluginconf["activemq.pool.1.host"], @config.pluginconf["activemq.pool.2.host"]]
         user = request[:user] || @config.pluginconf["activemq.pool.1.user"]
         pass = request[:password] || @config.pluginconf["activemq.pool.1.password"]
+        port = request[:port] || @config.pluginconf["activemq.pool.1.port"]
 
         membercount.times do |i|
           identity = "#{@config.identity}-#{i}"
@@ -110,7 +110,7 @@ module MCollective
         pid = member_running?(identity)
         if pid
           Log.info("Stopping collective member #{identity} with pid #{pid}")
-          Process.kill(2, Integer(pid))
+          ::Process.kill(2, Integer(pid))
           FileUtils.rm(get_member_pid(identity)) rescue nil
         end
       end

@@ -14,11 +14,14 @@ direct_addressing = yes
 direct_addressing_threshold = 5
 
 connector = activemq
-plugin.activemq.pool.size = 1
-plugin.activemq.pool.1.host = <%= stompserver %>
-plugin.activemq.pool.1.port = <%= stompport %>
-plugin.activemq.pool.1.user = <%= stompuser %>
-plugin.activemq.pool.1.password = <%= stomppass %>
+plugin.activemq.pool.size = <%= stompserver.size %>
+
+<% stompserver.each_with_index do |server, idx| %>
+plugin.activemq.pool.<%= idx + 1 %>.host = <%= server %>
+plugin.activemq.pool.<%= idx + 1 %>.port = <%= stompport %>
+plugin.activemq.pool.<%= idx + 1 %>.user = <%= stompuser %>
+plugin.activemq.pool.<%= idx + 1 %>.password = <%= stomppass %>
+<% end %>
 
 factsource = yaml
 plugin.yaml = <%= memberdir %>/etc/facts.yaml

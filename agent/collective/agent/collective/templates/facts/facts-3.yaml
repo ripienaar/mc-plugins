@@ -1,0 +1,5 @@
+cluster: c
+customer: bar
+environment: staging
+operatingsystem: CentOS
+architecture: i386
