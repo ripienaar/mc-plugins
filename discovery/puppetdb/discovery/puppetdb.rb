@@ -1,11 +1,18 @@
 require 'net/http'
 require 'net/https'
 
+# Proof of Concept PuppetDB integration for mcollective discovery
+# capable of supporting class, fact and identity filters.
+#
+# Final incorporation into mcollective would depend on the
+# http://projects.puppetlabs.com/issues/14763 being closed
+#
+# There are some hard coded hostnames etc here, so just a POC
 module MCollective
   class Discovery
     class Puppetdb
       def self.discover(filter, timeout, limit=0, client=nil)
-        http = Net::HTTP.new('puppetdb.devco.net', 443)
+        http = Net::HTTP.new('puppetdb.xx.net', 443)
         http.use_ssl = true
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
 
