@@ -10,10 +10,10 @@ action "hvinfo", :description => "Hypervisor Information" do
     display :always
 
     input :facts,
-        :prompt      => "Include Facts?",
-        :description => "Also include Facter in the reply",
-        :type        => :boolean,
-        :optional    => true
+          :prompt      => "Include Facts?",
+          :description => "Also include Facter in the reply",
+          :type        => :boolean,
+          :optional    => true
 
     output :model,
            :description => "Hypervisor Model",
@@ -122,6 +122,13 @@ action "hvinfo", :description => "Hypervisor Information" do
     output :facts,
            :description => "Facts about this machine",
            :display_as  => "Facts"
+
+    if respond_to?(:summarize)
+        summarize do
+            aggregate sum(:num_of_domains), :format => "Total Running Domains: %d"
+            aggregate sum(:num_of_defined_domains), :format => "Total Stopped Domains: %d"
+        end
+    end
 end
 
 action "domaininfo", :description => "Domain Information" do
