@@ -3,14 +3,6 @@ module MCollective
         class Libvirt<RPC::Agent
             require 'libvirt'
 
-            metadata    :name        => "libvirt",
-                        :description => "SimpleRPC Libvirt Agent",
-                        :author      => "R.I.Pienaar <rip@devco.net>",
-                        :license     => "ASL2.0",
-                        :version     => "0.2",
-                        :url         => "http://devco.net/",
-                        :timeout     => 10
-
             action "hvinfo" do
                 conn = connect
 

@@ -2,7 +2,7 @@ metadata    :name        => "libvirt",
             :description => "SimpleRPC Libvirt Agent",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL2.0",
-            :version     => "0.2",
+            :version     => "0.3",
             :url         => "http://devco.net/",
             :timeout     => 10
 
@@ -121,7 +121,8 @@ action "hvinfo", :description => "Hypervisor Information" do
 
     output :facts,
            :description => "Facts about this machine",
-           :display_as  => "Facts"
+           :display_as  => "Facts",
+           :default     => {}
 
     if respond_to?(:summarize)
         summarize do
