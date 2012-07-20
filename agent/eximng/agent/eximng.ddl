@@ -1,8 +1,8 @@
-metadata    :name        => "Exim NG",
+metadata    :name        => "eximng",
             :description => "SimpleRPC based Exim management agent",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL2",
-            :version     => "0.1",
+            :version     => "0.2",
             :url         => "http://www.devco.net/",
             :timeout     => 30
 
@@ -66,7 +66,7 @@ action "mailq", :description => "Retrieves the server mail queue" do
            :display_as  => "Frozen"
 
     summarize do
-        aggregate average(:size), :format => "   Average email size: %d"
+        aggregate sum(:size), :format => "   Total Email: %d"
     end
 end
 
@@ -145,7 +145,7 @@ action "retrymsg", :description => "Retries a specific message" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -161,7 +161,7 @@ action "addrecipient", :description => "Add a recipient to a message" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -185,7 +185,7 @@ action "setsender", :description => "Sets the sender email address of a message"
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -209,7 +209,7 @@ action "markdelivered", :description => "Marks a specific message as delivered" 
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -249,7 +249,7 @@ action "freeze", :description => "Freeze a specific message" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -265,7 +265,7 @@ action "thaw", :description => "Thaw a specific message" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -281,7 +281,7 @@ action "giveup", :description => "Gives up on a specific message with a NDR" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 
@@ -297,7 +297,7 @@ action "rm", :description => "Removes a specific message without a NDR" do
           :prompt      => "Message ID",
           :description => "Valid message id currently in the mail queue",
           :type        => :string,
-          :validation  => '^\w+-\w+-\w+$',
+          :validation  => :exim_msgid,
           :optional    => false,
           :maxlength   => 16
 

@@ -1,14 +1,6 @@
 module MCollective
     module Agent
         class Eximng<RPC::Agent
-            metadata    :name        => "Exim NG",
-                        :description => "SimpleRPC based Exim management agent",
-                        :author      => "R.I.Pienaar <rip@devco.net>",
-                        :license     => "ASL2",
-                        :version     => "0.1",
-                        :url         => "http://www.devco.net/",
-                        :timeout     => 30
-
             def startup_hook
                 @exim = config.pluginconf["exim.paths.exim"] || "/usr/sbin/exim"
                 @mailq = config.pluginconf["exim.paths.mailq"] || "/usr/bin/mailq"
