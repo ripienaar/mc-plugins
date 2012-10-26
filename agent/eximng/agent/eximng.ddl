@@ -2,9 +2,11 @@ metadata    :name        => "eximng",
             :description => "SimpleRPC based Exim management agent",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL2",
-            :version     => "0.2",
+            :version     => "0.7",
             :url         => "http://www.devco.net/",
             :timeout     => 30
+
+requires :mcollective => "2.1.1"
 
 action "mailq", :description => "Retrieves the server mail queue" do
     display :always
