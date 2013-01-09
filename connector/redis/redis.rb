@@ -9,8 +9,7 @@ module MCollective
     # starter / testing style setup which would be easier for new
     # users to evaluate mcollective
     #
-    # It supports direct addressing but not yet collectives - those
-    # that is possible
+    # It supports direct addressing and sub collectives
     #
     # We'd also add a registration plugin for it and a discovery
     # plugin which means we can give a very solid fast first-user
@@ -39,8 +38,10 @@ module MCollective
           if PluginManager["security_plugin"].initiated_by == :client
             @sources << "mcollective::reply::%s::%d" % [@config.identity, $$]
           else
-            @sources << "mcollective::server::direct::%s" % @config.identity
-            @sources << "mcollective::server::agents"
+            @config.collectives.each do |collective|
+              @sources << "%s::server::direct::%s" % [collective, @config.identity]
+              @sources << "%s::server::agents" % collective
+            end
           end
 
           @subscribed = true
@@ -61,8 +62,8 @@ module MCollective
 
         if msg.type == :direct_request
           msg.discovered_hosts.each do |node|
-            target[:name] = "mcollective::server::direct::%s" % node
-            target[:headers] = headers_for(msg, node)
+            target[:name] = "%s::server::direct::%s" % [msg.collective, node]
+            target[:headers]["reply-to"] = msg.reply_to
 
             Log.debug("Sending a direct message to Redis target '#{target[:name]}' with headers '#{target[:headers].inspect}'")
 
@@ -73,11 +74,12 @@ module MCollective
         else
           if msg.type == :reply
             target[:name] = msg.request.headers["reply-to"]
+            target[:headers]["reply-to"] = "mcollective::reply::%s::%d" % [@config.identity, $$]
           elsif msg.type == :request
-            target[:name] = "mcollective::server::agents"
+            target[:name] = "%s::server::agents" % msg.collective
+            target[:headers]["reply-to"] = msg.collective
           end
 
-          target[:headers].merge!(headers_for(msg))
 
           Log.debug("Sending a broadcast message to Redis target '#{target[:name]}' with headers '#{target[:headers].inspect}'")
 
@@ -85,20 +87,6 @@ module MCollective
                             :body => msg.payload,
                             :headers => target[:headers]}
         end
-      end
-
-      def headers_for(msg, identity=nil)
-        headers = {}
-
-        if [:request, :direct_request].include?(msg.type)
-          if msg.reply_to
-            headers["reply-to"] = msg.reply_to
-          else
-            headers["reply-to"] = "mcollective::reply::%s::%d" % [@config.identity, $$]
-          end
-        end
-
-        headers
       end
 
       def start_receiver_thread(sources)
