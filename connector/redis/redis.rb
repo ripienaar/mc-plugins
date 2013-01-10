@@ -63,7 +63,7 @@ module MCollective
         if msg.type == :direct_request
           msg.discovered_hosts.each do |node|
             target[:name] = "%s::server::direct::%s" % [msg.collective, node]
-            target[:headers]["reply-to"] = msg.reply_to
+            target[:headers]["reply-to"] = "mcollective::reply::%s::%d" % [@config.identity, $$]
 
             Log.debug("Sending a direct message to Redis target '#{target[:name]}' with headers '#{target[:headers].inspect}'")
 
@@ -74,10 +74,10 @@ module MCollective
         else
           if msg.type == :reply
             target[:name] = msg.request.headers["reply-to"]
-            target[:headers]["reply-to"] = "mcollective::reply::%s::%d" % [@config.identity, $$]
+
           elsif msg.type == :request
             target[:name] = "%s::server::agents" % msg.collective
-            target[:headers]["reply-to"] = msg.collective
+            target[:headers]["reply-to"] = "mcollective::reply::%s::%d" % [@config.identity, $$]
           end
 
 
