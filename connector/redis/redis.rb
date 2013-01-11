@@ -15,6 +15,45 @@ module MCollective
     # plugin which means we can give a very solid fast first-user
     # experience using this
     class Redis<Base
+      class ThreadsafeQueue
+        require 'thread'
+        require 'timeout'
+
+        def initialize
+          @queue = []
+          @mutex = Mutex.new
+          @cv =  ConditionVariable.new
+        end
+
+        def push(item)
+          @mutex.synchronize do
+            @queue.push(item)
+          end
+
+          @cv.signal
+        end
+
+        alias_method :<<, :push
+
+        def pop
+          @mutex.synchronize do
+            while true
+              if @queue.empty?
+                begin
+                  Timeout::timeout(5) do
+                    @cv.wait(@mutex)
+                  end
+                rescue Timeout::Error
+                  retry
+                end
+              else
+                return @queue.shift
+              end
+            end
+          end
+        end
+      end
+
       def initialize
         @config = Config.instance
         @sources = []
@@ -22,12 +61,12 @@ module MCollective
       end
 
       def connect
-        @receiver_redis = ::Redis.new
-        @receiver_queue = Queue.new
+        @receiver_redis = ::Redis.new :thread_safe => false
+        @receiver_queue = ThreadsafeQueue.new
         @receiver_thread = nil
 
-        @sender_redis = ::Redis.new
-        @sender_queue = Queue.new
+        @sender_redis = ::Redis.new :thread_safe => false
+        @sender_queue = ThreadsafeQueue.new
         @sender_thread = nil
 
         start_sender_thread
@@ -54,10 +93,12 @@ module MCollective
 
       def receive
         msg = @receiver_queue.pop
-        Message.new(msg.body, msg, :headers => msg.headers)
+        return Message.new(msg.body, msg, :headers => msg.headers)
       end
 
       def publish(msg)
+        Log.debug("About to publish to the sender queue")
+
         target = {:name => nil, :headers => {}, :name => nil}
 
         if msg.type == :direct_request
@@ -91,27 +132,36 @@ module MCollective
 
       def start_receiver_thread(sources)
         @receiver_thread = Thread.new do
-          @receiver_redis.subscribe(@sources) do |on|
-            on.subscribe do |channel, subscriptions|
-              Log.debug("Subscribed to %s" % channel)
-            end
+          begin
+            @receiver_redis.subscribe(@sources) do |on|
+              on.subscribe do |channel, subscriptions|
+                Log.debug("Subscribed to %s" % channel)
+              end
 
-            on.message do |channel, message|
-              begin
-                decoded_msg = YAML.load(message)
+              on.message do |channel, message|
+                begin
+                  Log.debug("Got a message on %s: %s" % [channel, message])
+                  decoded_msg = YAML.load(message)
 
-                new_message = OpenStruct.new
-                new_message.channel = channel
-                new_message.body = decoded_msg[:body]
-                new_message.headers = decoded_msg[:headers]
+                  new_message = OpenStruct.new
+                  new_message.channel = channel
+                  new_message.body = decoded_msg[:body]
+                  new_message.headers = decoded_msg[:headers]
 
-                @receiver_queue << new_message
-              rescue => e
-                Log.warn("Failed to receive from the receiver source: %s: %s" % [e.class, e.to_s])
+                  @receiver_queue << new_message
+                rescue => e
+                  Log.warn("Failed to receive from the receiver source: %s: %s" % [e.class, e.to_s])
+                end
               end
             end
+          rescue Exception => e
+            Log.warn("The receiver thread lost connection to the Redis server: %s: %s" % [e.class, e.to_s])
+            sleep 0.2
+            retry
           end
         end
+
+        Log.debug("Started receiver_thread %s" % @receiver_thread.inspect)
       end
 
       def start_sender_thread
@@ -121,11 +171,15 @@ module MCollective
               msg = @sender_queue.pop
               encoded = {:body => msg[:body], :headers => msg[:headers]}.to_yaml
               @sender_redis.publish(msg[:channel], encoded)
-            rescue => e
+            rescue Exception => e
               Log.warn("Could not publish message to redis: %s: %s" % [e.class, e.to_s])
+              sleep 0.2
+              retry
             end
           end
         end
+
+        Log.debug("Started sender_thread %s" % @sender_thread.inspect)
       end
     end
   end
