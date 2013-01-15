@@ -14,7 +14,7 @@ module MCollective
     # - last seen time
     #
     # Keys will be set to expire (2 * registration interval) + 2
-    class Redis_registration<Base
+    class Redis<Base
       def body
         data = {:agentlist => [],
                 :facts => {},
@@ -36,25 +36,15 @@ module MCollective
 
         commit = lambda do |redis|
           begin
+            time = Time.now.utc.to_i
+
             redis.multi do
-              prefix = "mcollective::%s::" % data[:identity]
-              agents = [prefix, "agents"].join
-              facts = [prefix, "facts"].join
-              classes = [prefix, "classes"].join
-              collectives = [prefix, "collectives"].join
-              lastseen = [prefix, "lastseen"].join
-              expiry = (Config.instance.registerinterval * 2) + 5
+              data[:collectives].each {|c| redis.zadd "mcollective::collective::#{c}", time, data[:identity]}
+              data[:agentlist].each {|a| redis.zadd "mcollective::agent::#{a}", time, data[:identity]}
+              data[:classes].each {|c| redis.zadd "mcollective::class::#{c}", time, data[:identity]}
 
-              redis.del agents, facts, classes, collectives, lastseen
-              redis.rpush agents, data[:agentlist]
-              redis.rpush classes, data[:classes]
-              redis.rpush collectives, data[:collectives]
-              redis.hmset facts, data[:facts].to_a.flatten
-              redis.set lastseen, Time.now.to_i
-
-              [prefix, agents, facts, classes, collectives, lastseen].each do |k|
-                redis.expire k, expiry
-              end
+              redis.del "mcollective::facts::#{data[:identity]}"
+              redis.hmset "mcollective::facts::#{data[:identity]}", data[:facts].map{|k, v| [k.to_s, v.to_s]}.flatten
             end
           rescue => e
             Log.error("%s: %s: %s" % [e.backtrace.first, e.class, e.to_s])
