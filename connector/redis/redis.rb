@@ -57,6 +57,8 @@ module MCollective
         end
       end
 
+      attr_reader :receiver_queue, :sender_queue
+
       def initialize
         @config = Config.instance
         @sources = []
@@ -68,6 +70,8 @@ module MCollective
 
       def connect
         redis_opts = {:host => @host, :port => @port, :db => @db}
+
+        Log.debug("Connecting to redis: %s" % redis_opts.inspect)
 
         @receiver_redis = ::Redis.new(redis_opts)
         @receiver_queue = ThreadsafeQueue.new
@@ -118,7 +122,8 @@ module MCollective
 
             @sender_queue << {:channel => target[:name],
                               :body => msg.payload,
-                              :headers => target[:headers]}
+                              :headers => target[:headers],
+                              :command => :publish}
           end
         else
           if msg.type == :reply
@@ -134,7 +139,8 @@ module MCollective
 
           @sender_queue << {:channel => target[:name],
                             :body => msg.payload,
-                            :headers => target[:headers]}
+                            :headers => target[:headers],
+                            :command => :publish}
         end
       end
 
@@ -168,11 +174,20 @@ module MCollective
 
       def start_sender_thread
         @sender_thread = Thread.new do
+          Log.debug("Starting sender thread")
+
           loop do
             begin
               msg = @sender_queue.pop
-              encoded = {:body => msg[:body], :headers => msg[:headers]}.to_yaml
-              @sender_redis.publish(msg[:channel], encoded)
+
+              case msg[:command]
+                when :publish
+                  encoded = {:body => msg[:body], :headers => msg[:headers]}.to_yaml
+                  @sender_redis.publish(msg[:channel], encoded)
+
+                when :proc
+                  msg[:proc].call(@sender_redis)
+              end
             rescue Exception => e
               Log.warn("Could not publish message to redis: %s: %s" % [e.class, e.to_s])
               sleep 0.2
