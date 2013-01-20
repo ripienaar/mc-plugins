@@ -1,4 +1,4 @@
-class MCollective
+module MCollective
   class Application::Plot<MCollective::Application
     description "Plots data provided by Data Plugins"
 
