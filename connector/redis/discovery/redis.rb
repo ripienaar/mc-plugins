@@ -95,9 +95,10 @@ module MCollective
         end
 
         def collective_hostlist(collective, max_age)
-          oldest = Time.now.utc.to_i - max_age
+          now = Time.now.utc.to_i
+          oldest = now - max_age
 
-          @redis.zrange("mcollective::collective::#{collective}", 0, oldest)
+          @redis.zrangebyscore("mcollective::collective::#{collective}", oldest, now)
         end
 
         def regexy_string(string)
