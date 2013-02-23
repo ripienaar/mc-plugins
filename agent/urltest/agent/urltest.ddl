@@ -1,8 +1,8 @@
-metadata    :name        => "urltester",
+metadata    :name        => "urltest",
             :description => "Agent that connects to a URL and returns some statistics",
             :author      => "R.I.Pienaar <rip@devco.net>",
             :license     => "ASL 2.0",
-            :version     => "2.0.0",
+            :version     => "2.0.1",
             :url         => "https://github.com/ripienaar/mc-plugins",
             :timeout     => 60
 
