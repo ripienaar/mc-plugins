@@ -49,18 +49,18 @@ module MCollective
             facts[host] = @redis.hgetall("mcollective::facts::#{host}")
           end
 
-          matched_hosts = []
-
           filter.each do |f|
+            matched_hosts = []
+
             fact = f[:fact]
             value = f[:value]
 
             hosts.each do |host|
               matched_hosts << host if facts[host].include?(fact) && facts[host][fact].match(regexy_string(value))
             end
-          end
 
-          found << matched_hosts
+            found << matched_hosts
+          end
         end
 
         def identity_search(filter, found, max_age, collective)
