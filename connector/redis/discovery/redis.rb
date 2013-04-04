@@ -83,17 +83,17 @@ module MCollective
             key.match(/^#{prefix}::(.+)$/)[1]
           end
 
-          discovered = []
-
           filter.each do |matcher|
+            discovered = []
+
             matched = members.grep(regexy_string(matcher))
 
             matched.each do |member|
               discovered.concat @redis.zrange("#{prefix}::#{member}", 0, oldest)
             end
-          end
 
-          found << discovered
+            found << discovered
+          end
         end
 
         def collective_hostlist(collective, max_age)
