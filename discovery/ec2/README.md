@@ -18,7 +18,7 @@ mcollective identities should match.
 
 All nodes in eu-west:
 
-    $ mco ping --dm=ec -F availability_zone=/eu-west/
+    $ mco ping --dm=ec2 -F availability_zone=/eu-west/
 
 All nodes with the tag cluster=charlie:
 
