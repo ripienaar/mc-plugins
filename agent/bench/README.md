@@ -112,6 +112,18 @@ one...
          Running: 10
          Stopped: 0
 
+    Summary of Instances:
+
+       Total Instances: 10
+
+    Summary of Running:
+
+       Total Running Instances: 10
+
+    Summary of Stopped:
+
+       Total Stopped Instances: 0
+
     Finished processing 1 / 1 hosts in 9627.61 ms
 
 If you set them up to run against the same ActiveMQ you should be able to

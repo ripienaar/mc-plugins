@@ -1,13 +1,19 @@
 module MCollective
   module Agent
     class Collective<RPC::Agent
-      metadata    :name        => "collective",
-                  :description => "Manage multiple mcollectived instances on a single node",
-                  :author      => "R.I.Pienaar",
-                  :license     => "ASL 2.0",
-                  :version     => "0.6",
-                  :url         => "http://devco.net/",
-                  :timeout     => 60
+      def startup_hook
+        @basedir = @config.pluginconf.fetch("collective.basedir", "/tmp/collective")
+        @logsdir = File.join(@basedir, "logs")
+        @pidsdir = File.join(@basedir, "pids")
+        @clonedir = File.join(@basedir, "source")
+        @collectivedir = File.join(@basedir, "collective")
+        @templatedir = @config.pluginconf.fetch("collective.templates", File.join(File.dirname(__FILE__), "collective", "templates"))
+        @pluginsdir = @config.pluginconf.fetch("collective.plugins", File.join(File.dirname(__FILE__), "collective", "plugins"))
+
+        FileUtils.mkdir_p @basedir
+        FileUtils.mkdir_p @logsdir
+        FileUtils.mkdir_p @pidsdir
+      end
 
       action "destroy" do
         stop_all_members
@@ -203,21 +209,6 @@ module MCollective
           f.puts erb.result(scope)
         end
       end
-
-      def startup_hook
-        @basedir = @config.pluginconf["collective.basedir"] || "/tmp/collective"
-        @logsdir = File.join(@basedir, "logs")
-        @pidsdir = File.join(@basedir, "pids")
-        @clonedir = File.join(@basedir, "source")
-        @collectivedir = File.join(@basedir, "collective")
-        @templatedir = File.join(File.dirname(__FILE__), "collective", "templates")
-        @pluginsdir = File.join(File.dirname(__FILE__), "collective", "plugins")
-
-        FileUtils.mkdir_p @basedir
-        FileUtils.mkdir_p @logsdir
-        FileUtils.mkdir_p @pidsdir
-      end
-
     end
   end
 end
