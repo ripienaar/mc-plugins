@@ -47,7 +47,7 @@ module MCollective
         FileUtils.mkdir_p @collectivedir
 
         membercount = Integer(request[:count] || 10)
-        brokerhost = request[:activemq_host] || @config.pluginconf.fetch(".activemq.pool.1.host", nil)
+        brokerhost = request[:activemq_host] || @config.pluginconf.fetch("activemq.pool.1.host", nil)
 
         raise "Cannot figure out broker host, supply :activemq_host or set plugin.activemq.pool.1.host" unless brokerhost
 
