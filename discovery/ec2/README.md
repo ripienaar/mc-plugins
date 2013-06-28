@@ -30,6 +30,31 @@ All nodes in the 'mcollective' security group:
 
 Regular expressions are supported where sensible.
 
+Currently for a given node this is an example of the data that you can
+discover using the fact-like syntax:
+
+    {"flavor_id"=>"m1.medium",
+     "image_id"=>"ami-230b1b57",
+     "state"=>"running",
+     "monitoring"=>false,
+     "availability_zone"=>"eu-west-1c",
+     "placement_group"=>nil,
+     "tenancy"=>"default",
+     "id"=>"i-f4e9b0b9",
+     "private_dns_name"=>"ip-10-34-192-235.eu-west-1.compute.internal",
+     "dns_name"=>"ec2-54-228-117-74.eu-west-1.compute.amazonaws.com",
+     "reason"=>nil,
+     "key_name"=>"rip_aws",
+     "ami_launch_index"=>9,
+     "created_at"=>2013-06-28 10:11:57 UTC,
+     "kernel_id"=>"aki-71665e05",
+     "private_ip_address"=>"10.34.192.235",
+     "public_ip_address"=>"54.228.117.74",
+     "root_device_type"=>"ebs",
+     "client_token"=>"oatGN1372414316920",
+     "tag_cluster"=>"charlie"}]
+
+
 Contact?
 --------
 
