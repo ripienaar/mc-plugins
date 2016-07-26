@@ -20,6 +20,7 @@ module MCollective
     #    plugin.redis.host = localhost
     #    plugin.redis.port = 6379
     #    plugin.redis.db = 1
+    #    plugin.redis.password = someStrongPassword (this is optional)
     class Redis<Base
       class ThreadsafeQueue
         def initialize
@@ -66,10 +67,14 @@ module MCollective
         @host = @config.pluginconf.fetch("redis.host", "localhost")
         @port = Integer(@config.pluginconf.fetch("redis.port", "6379"))
         @db = Integer(@config.pluginconf.fetch("redis.db", "1"))
+        @password = @config.pluginconf.fetch("redis.password", nil)
       end
 
       def connect
         redis_opts = {:host => @host, :port => @port, :db => @db}
+        unless @password.nil?
+          redis_opts.store(:password, @password)
+        end
 
         Log.debug("Connecting to redis: %s" % redis_opts.inspect)
 

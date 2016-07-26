@@ -10,9 +10,13 @@ module MCollective
           host = config.pluginconf.fetch("redis.host", "localhost")
           port = Integer(config.pluginconf.fetch("redis.port", "6379"))
           db = Integer(config.pluginconf.fetch("redis.db", "1"))
+          password = config.pluginconf.fetch("redis.password", nil)
           max_age = Integer(config.pluginconf.fetch("redis.max_age", 1800))
 
           redis_opts = {:host => host, :port => port, :db => db}
+          unless @password.nil?
+            redis_opts.store(:password, @password)
+          end
 
           @redis = ::Redis.new(redis_opts)
 
